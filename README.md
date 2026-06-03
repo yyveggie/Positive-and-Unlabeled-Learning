@@ -1,2 +1,3 @@
 # Positive-and-Unlabeled-Learning
-关于PU-Learning的仓库，部分来源于原文的链接。之后会附上。
+Reproduction of the Positive-and-Unlabeled-Learning method.
+Positive-and-Unlabeled-Learning 算法的复现，
