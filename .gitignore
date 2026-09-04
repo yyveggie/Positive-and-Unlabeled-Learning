@@ -23,7 +23,6 @@ __pycache__/
 
 # Manuscript, supplement, figures and their sources
 paper/
-algorithms/
 systematic_review/
 tools/
 output/

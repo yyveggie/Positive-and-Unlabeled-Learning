@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{C-DH (convex PU formulation with the double hinge loss)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Positive samples $\{x_{i}\}$; unlabeled samples $\{x_{j}'\}$;
+	    class prior $\pi$; basis functions $\phi(x)$; regularization weight $\lambda$
+	    \ENSURE
+	    Classifier $g(x)=\alpha^{\top}\phi(x)+b$
+	    \STATE \textbf{Problem with the naive surrogate:} unbiased PU risk estimation requires a
+	    loss with $\ell(z)-\ell(-z)=-z$; the ramp loss satisfies it but is \emph{non-convex},
+	    so training needs the concave--convex procedure and yields only local optima % non-convexity was the main obstacle for PU learning at the time
+	    \STATE \textbf{Rewrite the risk} using
+	    $(1-\pi)\mathbb{E}_{-1}[\ell(-g)]=\mathbb{E}_{X}[\ell(-g)]-\pi\mathbb{E}_{1}[\ell(-g)]$:
+	    \STATE \quad $J(g)=\pi\,\mathbb{E}_{1}\!\left[\ell(g(X))-\ell(-g(X))\right]
+	    +\mathbb{E}_{X}\!\left[\ell(-g(X))\right]$ % only expectations over P and U are needed; the negative-class expectation cancels
+	    \STATE \quad With a loss satisfying the linear-difference condition this becomes
+	    $J(g)=\pi\,\mathbb{E}_{1}[-g(X)]+\mathbb{E}_{X}[\ell(-g(X))]$
+	    \STATE \textbf{Double hinge loss} (convex, and satisfies the condition):
+	    \STATE \quad $\ell_{DH}(z)=\max\!\left(-z,\ \max\!\left(0,\ \tfrac{1}{2}-\tfrac{1}{2}z\right)\right)$ % replaces the non-convex part of the ramp with the upper envelope of two hinges
+	    \STATE \textbf{Empirical objective} with $g(x)=\alpha^{\top}\phi(x)+b$:
+	    \STATE \quad $\min_{\alpha,b}\ -\dfrac{\pi}{n_{p}}\sum_{i}\left(\alpha^{\top}\phi(x_{i})+b\right)
+	    +\dfrac{1}{n_{u}}\sum_{j}\ell_{DH}\!\left(-\alpha^{\top}\phi(x_{j}')-b\right)
+	    +\lambda\|\alpha\|^{2}$
+	    \STATE Solve by quadratic programming --- the problem is convex, so the solution is global % solvable by standard QP, so the optimum is global
+		\RETURN $g(x)=\alpha^{\top}\phi(x)+b$
+	\end{algorithmic}
+\end{algorithm}
+% du Plessis, Niu, Sugiyama, ICML 2015, "Convex Formulation for Learning from Positive
+% and Unlabeled Data". Compiled from Section 3, equations (4), (5) and (9), and Table 1 of the original.
+% Where this sits in the line of work: du Plessis et al. (2014) proved that an unbiased PU risk estimator requires a
+% loss satisfying l(z) - l(-z) = -z, which the ramp loss meets but is non-convex. This paper supplies a convex loss,
+% the double hinge, that satisfies the same condition, turning PU training into a quadratic program with a global
+% optimum. The thread leads on to uPU and nnPU. Table 1 of the original compares the candidate losses: squared,
+% logistic and hinge each fail either the condition or convexity, and only the ramp (non-convex) and the double hinge
+% (convex) satisfy both. The paper also notes that the objective is a special case of the label-noise estimator of
+% Natarajan et al. (2013): at particular parameter values, learning with noisy labels reduces to PU learning.
+\end{document}

@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{MMC-LS-SVM LPU (called MCLS in the source paper)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Training set $\{x_{i},+1\}_{i=1}^{L}\cup\{x_{i}\}_{i=L+1}^{N}$,
+	    where $y_{i}\in\{+1,-1\}$, $\forall i=L+1\longrightarrow N$
+	    \ENSURE
+	    Classifier $f(x)=w^{\top}\varphi(x)+b$
+	    \STATE Find labels of unlabelled examples $\left(\{\bar{y}_{i}\}_{i=L+1}^{N}\right)$
+	    using the algorithm described in \S2.1 % the initial labels come from maximum margin clustering, which is what MMC in the name refers to
+	    \WHILE{TRUE}
+	    \STATE Perform LS-SVM training using
+	    $\{x_{i},+1\}_{i=1}^{L}\cup\{x_{i},\bar{y}_{i}\}_{i=L+1}^{N}$ and compute $w$ % the labeled positives stay fixed at +1 throughout
+	    \STATE Compute the bias value $\hat{b}$ using the method described in \S2.3 % the bias is estimated separately rather than read off the LS-SVM solution
+	    \STATE Obtain new labels $\hat{y}_{i}$ using $w$ and the bias value $\hat{b}$,
+	    i.e. $\hat{y}_{i}=\mathrm{sign}\!\left(w^{\top}\varphi(x_{i})+\hat{b}\right)$,
+	    $\forall i=1\longrightarrow N$
+	    \IF{$\bar{y}_{i}==\hat{y}_{i}$ $\forall i=1\longrightarrow N$}
+	    \STATE Break % convergence is when the labels stop changing
+	    \ELSE
+	    \STATE $\bar{y}_{i}=\hat{y}_{i}$ $\forall i=1\longrightarrow N$
+	    \ENDIF
+	    \ENDWHILE
+	    \STATE $b=\hat{b}$
+		\RETURN $f(x)=w^{\top}\varphi(x)+b$
+	\end{algorithmic}
+\end{algorithm}
+% Chaudhari \& Shevade, ICONIP 2012, "Learning from Positive and Unlabelled Examples
+% Using Maximum Margin Clustering". Transcribed line by line from Algorithm 1 of the original.
+% Naming: the algorithm block of the original calls itself MCLS, while Figure 2 of this survey uses the label
+% MMC-LS-SVM LPU, settled by a naming check against the literature. The file name follows the figure and the title
+% carries both. Structure: there is no reliable-negative selection step. Maximum margin clustering first assigns an
+% initial label to every unlabeled instance, and the method then alternates between the LS-SVM and the labels until
+% the labels stop changing. Two technical points:
+% (1) the L labeled positives stay fixed at +1 for the whole iteration, and only unlabeled labels flip;
+% (2) the bias b is not read off the LS-SVM solution but estimated by the method of Section 2.3 of the original,
+%     because the two classes are so unbalanced under PU that a directly solved bias is systematically displaced.
+% Difference from others in the branch: Spy-EM, Roc-SVM and C-CRNE all carve out a reliable negative set before
+% training, whereas this method labels everything at once by clustering and turns the problem into iterative self-training.
+\end{document}

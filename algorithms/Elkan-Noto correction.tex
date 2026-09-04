@@ -1,0 +1,44 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{Elkan-Noto correction}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Training set of pairs $\langle x,s\rangle$ with $s=1$ for labeled positives and
+	    $s=0$ otherwise; validation set $V$ of labeled positives;
+	    a probabilistic classifier learner
+	    \ENSURE
+	    Calibrated posterior $p(y=1\mid x)$, or a weighted training set
+	    \STATE \textbf{SCAR assumption:} $c=p(s=1\mid y=1)$ is a constant, independent of $x$ % the labeling probability does not depend on the instance; this is the premise of the whole paper
+	    \STATE \textbf{Step 1: train the non-traditional classifier}
+	    \STATE Fit $g(x)\approx p(s=1\mid x)$ on $\langle x,s\rangle$, i.e. labeled positives
+	    versus everything else % note that what is learned is whether an instance is labeled, not whether it is positive
+	    \STATE \textbf{Step 2: estimate the label frequency $c$}
+	    \STATE $\hat{c}\leftarrow \dfrac{1}{|V|}\sum_{x\in V}g(x)$
+	    \hfill \emph{average of $g$ over held-out labeled positives} % a direct corollary of Lemma 1; the original also gives two further estimators e2 and e3
+	    \STATE \quad \emph{(this uses $g(x)\leq c$ for all $x$)}
+	    \STATE \textbf{Step 3 (Lemma 1): recover the true posterior}
+	    \STATE $p(y=1\mid x)=\dfrac{g(x)}{\hat{c}}$ % scaling the whole posterior curve by the constant c recovers it
+	    \STATE \textbf{Alternative use: weighted training}
+	    \STATE For each unlabeled $x$ (i.e. $s=0$), set
+	    $w(x)=p(y=1\mid x,s=0)=\dfrac{1-\hat{c}}{\hat{c}}\cdot\dfrac{g(x)}{1-g(x)}$ % split every unlabeled instance into two weighted copies
+	    \STATE Duplicate each unlabeled example into a positive copy with weight $w(x)$ and a
+	    negative copy with weight $1-w(x)$; labeled positives keep weight $1$
+	    \STATE Train any weighted-instance learner on this expanded set
+		\RETURN $p(y=1\mid x)$ or the trained weighted classifier
+	\end{algorithmic}
+\end{algorithm}
+% Elkan \& Noto, KDD 2008, "Learning Classifiers from Only Positive and Unlabeled Data".
+% Compiled from Lemma 1 and equations (3) and (4) of the original.
+% One of the most cited results in PU learning and the foundational work of branch C, prior and posterior correction.
+% Central insight: under SCAR the probability of being labeled, g(x) = p(s=1|x), and the probability of being positive,
+% p(y=1|x), differ only by a constant factor c that does not depend on x. Training an ordinary classifier to predict s
+% and dividing throughout by c therefore recovers the true class posterior, and c itself can be estimated as the mean
+% of g over held-out labeled positives. The original gives two uses side by side: scale the posterior directly (line 8),
+% or split each unlabeled instance by w(x) into a weighted positive and a weighted negative copy and hand them to any
+% weighted-instance learner (lines 10 to 12). Estimators e2 and e3 for c are also given; e1, the mean, is the common one.
+\end{document}

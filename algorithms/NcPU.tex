@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{NcPU: NoiSNCL + phantom label disambiguation (one epoch)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Training dataset $D$; classifier $f$; online network $g$; target network $g'$;
+	    initialized pseudo targets $s_{i}$; initialized class prototypes $\mu_{c}$;
+	    momentum hyperparameters $\alpha,\beta,\gamma$
+	    \ENSURE
+	    Updated $f,g,g',\{s_{i}\},\{\mu_{c}\}$
+	    \FOR{$iter=1,2,\dots$}
+	    \STATE Sample a mini-batch $B$ from $D$
+	    \STATE $\tilde{Y}=\{\tilde{y}_{i}=\arg\max_{c}f_{c}(x_{i})\mid x_{i}\in B\}$
+	    \hfill \emph{classifier prediction}
+	    \STATE $B_{q}=\{q_{i}=g(\mathrm{Aug}_{r}(x_{i}))\mid x_{i}\in B\}$
+	    \hfill \emph{online embeddings}
+	    \FOR{$x_{i}\in B$}
+	    \STATE $\mu_{c}=\mathrm{Normalize}\!\left(\alpha\mu_{c}+(1-\alpha)\tilde{q}_{i}\right)$, if $\tilde{y}_{i}=c$
+	    \hfill \emph{class-conditional prototype update} % prototypes update by momentum, which resists noise in any single batch
+	    \ENDFOR
+	    \STATE Momentum update $g'$ using $g$
+	    \hfill \emph{update the target network} % non-contrastive structure: collapse is avoided by the target network rather than by negative samples
+	    \STATE $B_{k}=\{k_{i}=g'(\mathrm{Aug}_{r}(x_{i}))\mid x_{i}\in B\}$
+	    \hfill \emph{target embeddings}
+	    \STATE $\tau=\dfrac{\tilde{\rho}(1)}{\max\{\tilde{\rho}(0),\tilde{\rho}(1)\}}\cdot\tilde{\tau}$
+	    \hfill \emph{self-adaptive threshold} % the threshold adapts to the ratio of learning progress between the two classes and is not set by hand
+	    \FOR{$x_{i}\in B$}
+	    \STATE $r_{i}=\mathrm{OneHot}\!\left(\arg\max_{j}\tilde{q}_{i}^{\top}\mu_{j}\right)$ % the candidate label follows the similarity between embedding and prototype
+	    \STATE $s_{i}'=\beta s_{i}'+(1-\beta)r_{i}$
+	    \STATE $s_{i}=\begin{cases}[0,1]^{\top} & f_{1}(x_{i})\geq\tau\\ s_{i}' & f_{1}(x_{i})<\tau\end{cases}$
+	    \hfill \emph{phantom pseudo target update} % high-confidence instances are pinned positive; the rest keep a soft phantom label
+	    \ENDFOR
+	    \STATE Minimize the loss $\mathcal{L}$ (NoiSNCL term plus the PU classification term)
+	    \ENDFOR
+		\RETURN $f,g,g',\{s_{i}\},\{\mu_{c}\}$
+	\end{algorithmic}
+\end{algorithm}
+% H. Zhao et al., ICLR 2026 (arXiv 2510.01278), "Noisy-Pair Robust Representation
+% Alignment for Positive-Unlabeled Learning" (method name NcPU).
+% Transcribed line by line from Algorithm 1 of the original, the single-round pseudocode of Appendix C.
+% Two modules and how they couple:
+% (1) NoiSNCL, a noisy-pair-robust supervised non-contrastive loss. Positive pairs formed from pseudo-labels under PU
+%     are necessarily noisy, and an ordinary supervised contrastive loss is degraded by them. The non-contrastive
+%     structure, an online network with a momentum target network, needs no negative samples and resists such pairs.
+% (2) PLD, phantom label disambiguation. Class-conditional prototypes give each unlabeled instance a soft phantom
+%     label, and the adaptive threshold tau decides when to pin it as a hard positive.
+% The central argument of the original is that the two form an EM procedure: pseudo-label assignment is the E step and
+% minimizing NoiSNCL, which tightens the clusters, is the M step; they alternate and reinforce each other.
+\end{document}

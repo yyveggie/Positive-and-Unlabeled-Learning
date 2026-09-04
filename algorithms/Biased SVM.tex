@@ -1,0 +1,20 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Biased-SVM} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;C_+;C_-$
+	    \ENSURE
+	    Classifier\ $f$
+		\STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+		\STATE $f$ $\leftarrow$ Generate\ a biased SVM\ classifier$(P,U,C_+,C_-)$
+		\RETURN{$f$}  
+	\end{algorithmic}
+\end{algorithm}
+\end{document}

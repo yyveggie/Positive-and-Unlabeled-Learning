@@ -1,0 +1,59 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{SSnnPU: self-supervised nnPU with per-frame class-prior estimation}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Image sequence $I$; point-wise positive samples $X^{p}$ and unlabeled samples $X^{u}$;
+	    upper-bound initialisation $\hat{\pi}_{0}=\pi_{\max}\gg\pi_{i}$;
+	    exponent $\gamma$; variance threshold $\tau$; patience $T_{s}$
+	    \ENSURE
+	    Optimal per-frame priors $\hat{\pi}^{\ast}$ and the foreground model $f_{\theta}$
+	    \STATE \textbf{Setting:} only a few clicked pixels per frame are known positives;
+	    every other pixel is unlabeled, and the foreground fraction $\pi_{i}$ differs per frame % the prior differs frame by frame, so a single pi cannot be used
+	    \STATE Initialise $\hat{\pi}_{i,0}\leftarrow \pi_{\max}$ for all frames $i$;\quad $k\leftarrow 0$
+	    \REPEAT
+	    \STATE \textbf{(a) One nnPU epoch} with the current priors $\hat{\pi}_{k}$:
+	    \FORALL{batches}
+	    \STATE $R_{pu}\leftarrow \sum_{i}\Big[\frac{\pi_{i}}{|X_{i}^{p}|}\sum_{x\in X_{i}^{p}}\ell^{+}(f_{\theta}(x))
+	    +\underbrace{\big(\tfrac{1}{|X_{i}^{u}|}\sum_{x\in X_{i}^{u}}\ell^{-}(f_{\theta}(x))
+	    -\tfrac{\pi_{i}}{|X_{i}^{p}|}\sum_{x\in X_{i}^{p}}\ell^{-}(f_{\theta}(x))\big)}_{R_{i}^{-}}\Big]$
+	    \STATE \textbf{if} $R_{i}^{-}<0$ \textbf{then} ascend along $\nabla_{\theta}R_{i}^{-}$
+	    \textbf{else} descend along $\nabla_{\theta}R_{pu}$ % the nnPU rollback step, decided per frame
+	    \ENDFOR
+	    \STATE \textbf{(b) Noisy observation of the prior:}
+	    $\rho_{i}^{k}\leftarrow \mathbb{E}_{x\in X_{i}}\!\left[f_{\theta_{k}}(x)^{\gamma}\right]$,
+	    clipped to $[0,\hat{\pi}_{0}]$ % the model's own prediction serves as a noisy observation of pi
+	    \STATE \textbf{(c) State update:} propagate
+	    $\pi_{k+1}=g(\pi_{k},L)-u_{k}\mathbf{1}_{N}+\mathcal{N}(0,Q)$ with $g$ a Hanning filter,
+	    then fuse $\rho_{k}$ by an \emph{unscented Kalman filter} under the inequality constraints % g smooths neighbouring frames in time; u_k sweeps the prior downward from its upper bound
+	    \STATE $k\leftarrow k+1$
+	    \UNTIL{for $T_{s}$ consecutive iterations both
+	    $\frac{|\tilde{X}_{p}^{i}|}{N_{i}}<\hat{\pi}_{0}\ \forall i$ and
+	    $\mathrm{Var}\!\left[f_{\theta}(\tilde{X}_{n})\right]<\tau$} % two stopping conditions: the foreground fraction back inside the bound, and background predictions settled
+	    \STATE \textbf{Post-processing (KSPTrack):} average $f_{\theta}$ over $\sim$1200 superpixels,
+	    set the inclusion cost $C_{fg}(i)=-\log\frac{f_{\theta}(x_{i})}{1-f_{\theta}(x_{i})}$,
+	    and solve a $K$-shortest-paths flow over the sequence % spatio-temporal regularization: per-frame predictions are linked into a segmentation consistent across frames
+		\RETURN $\hat{\pi}^{\ast}$, $f_{\theta}$, and the spatio-temporal masks
+	\end{algorithmic}
+\end{algorithm}
+% Lejeune \& Sznitman, Medical Image Analysis 2021, "A Positive/Unlabeled Approach for
+% the Segmentation of Medical Sequences Using Point-wise Supervision".
+% Setting: annotation is very costly in medical sequence segmentation, so only a few foreground pixels are marked per
+% frame and every other pixel is unlabeled. This is a pixelwise PU problem in which each frame has its own pi_i.
+% The main contribution is on lines 8 to 10: the class prior is treated as a state to be estimated, not a given constant.
+% Three elements:
+% (1) observation. The gamma-power mean rho of the model's own predictions is a noisy observation of pi, which is
+%     where self-supervised in the name comes from; (2) state transition. A Hanning filter g smooths the prior across
+%     neighbouring frames, whose foreground fractions should be continuous, and the control term u_k sweeps the
+%     estimate downward from the upper bound pi_max, making this a hybrid of search and filtering;
+% (3) fusion. An unscented Kalman filter gives the state posterior under the inequality constraints.
+% Stopping requires both that the foreground fraction return inside the initial bound and that the variance of
+% background predictions be small enough, held for T_s = 10 consecutive steps so the sweep is not cut short.
+% The KSPTrack post-processing is orthogonal to PU learning: it turns per-frame probabilities into a flow problem on a
+% superpixel graph, solved by K shortest paths, which enforces spatio-temporal consistency across frames.
+\end{document}

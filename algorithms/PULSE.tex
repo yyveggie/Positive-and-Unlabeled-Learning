@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PULSE: audio signal enhancement by PU learning on spectrogram patches} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Noise clips (easy to record); noisy signal clips;
+	    CNN $g_{\theta}$ over spectrogram patches; class prior $\pi=p(y=+1)$;
+	    loss $\ell$
+	    \ENSURE
+	    Enhanced signal (noise-suppressed)
+	    \STATE \textbf{Setting:} supervised SE needs \emph{parallel} noisy/clean pairs, but clean
+	    signals are often inaccessible; only non-parallel noisy clips and noise clips are available % clean signals often cannot be recorded, whereas noise is easy to record
+	    \STATE \textbf{Class definition:} let the P class be signal \emph{inactivity} and the N class
+	    be signal \emph{activity} % the definition is deliberately inverted: a noise clip reliably lacks signal, but not the converse
+	    \STATE \textbf{Data assignment:}
+	    \STATE \quad Spectrogram patches of \emph{noise} clips $\rightarrow$ P data % a noise clip cannot contain the target signal, so it is a reliable positive
+	    \STATE \quad Spectrogram patches of \emph{noisy signal} clips $\rightarrow$ U data % some patches of a noisy signal clip carry signal and some do not, so they are unlabeled
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample mini-batches of P patches and U patches
+	    \STATE Compute the non-negative PU risk
+	    $\hat{R}_{nnPU}(\theta)=\pi\hat{R}_{P}^{+}+\max\!\left(0,\ \hat{R}_{U}^{-}-\pi\hat{R}_{P}^{-}\right)$ % U holds genuine P patches, so treating it as negative would be biased; hence nnPU
+	    \STATE Update $\theta$ by gradient descent
+	    \ENDWHILE
+	    \STATE \textbf{Enhancement:} convert the per-patch posterior into a time--frequency
+	    \emph{mask}; TF components dominated by the signal are retained, the rest suppressed % classification is not the end point; turning it into a mask is what performs the enhancement
+		\RETURN the masked (enhanced) signal
+	\end{algorithmic}
+\end{algorithm}
+% Ito \& Sugiyama, ICASSP 2023 Best Paper (arXiv 2210.15143), "Audio Signal Enhancement
+% with Learning from Positive and Unlabelled Data". The original has no numbered algorithm block; compiled from
+% Sections 2 and 3 and the nnPU risk expression.
+% The ingenuity lies in restating the problem rather than in a new algorithm: speech enhancement lacking clean signal
+% becomes PU classification lacking negatives.
+% The direction of the class definition is what matters. P is signal inactivity and N is signal activity, not the
+% reverse, because a pure noise clip certainly holds no target signal and is therefore a reliable positive. Defined
+% the other way round, one would need clips holding signal and no noise, which is exactly what cannot be recorded.
+% Risk estimation follows nnPU (Kiryo et al.), since noisy clips contain genuine P patches.
+% The survey files this record as an application_method in branch J: it proposes no new PU mechanism, and the
+% contribution is carrying an existing one to a task not previously modelled this way.
+\end{document}

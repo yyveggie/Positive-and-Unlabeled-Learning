@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{ImbalancednnPU (oversampling-equivalent rebalanced PU risk)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$; true class prior $\pi$; target balanced prior $\pi'\approx 0.5$;
+	    symmetric loss $\ell$ with $\ell(t,+1)+\ell(t,-1)=1$; model $g_{\theta}$;
+	    SGD-like optimizer $A$; $\mathrm{MAX\_E}$
+	    \ENSURE
+	    Classifier $g_{\theta}$
+	    \STATE \textbf{Rebalanced risk} (equivalent to training on oversampled balanced PN data):
+	    \STATE \quad $\hat{R}_{\mathrm{balancePN}}(P,U)=\dfrac{\pi'}{n_{p}}\sum_{x\in P}\ell(g(x),+1)
+	    +\underbrace{\dfrac{1-\pi'}{n_{u}(1-\pi)}\sum_{x\in U}\ell(g(x),-1)
+	    -\dfrac{(1-\pi')\pi}{n_{p}(1-\pi)}\sum_{x\in P}\ell(g(x),-1)}_{\hat{R}_{N}(P,U)}$ % positives are reweighted by pi', and the negative term is scaled throughout by (1-pi')/(1-pi)
+	    \STATE $t\leftarrow 1$
+	    \WHILE{$t<\mathrm{MAX\_E}$}
+	    \STATE Shuffle $P$ and $U$ into $b$ mini-batches $P_{i},U_{i}$
+	    \FOR{$i=1$ \TO $b$}
+	    \IF{$\hat{R}_{N}(P_{i},U_{i})\geq 0$}
+	    \STATE Update $\theta$ by $A$ with gradient $\nabla_{\theta}\hat{R}_{\mathrm{nnBalancePU}}(P_{i},U_{i})$ % ordinary step
+	    \ELSE
+	    \STATE Update $\theta$ by $A$ with gradient $-\nabla_{\theta}\hat{R}_{N}(P_{i},U_{i})$ % a negative risk signals overfitting, so the step is reversed, as in nnPU
+	    \ENDIF
+	    \ENDFOR
+	    \STATE $t\leftarrow t+1$
+	    \ENDWHILE
+		\RETURN $\theta$ and $g_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% Su et al., IJCAI 2021 (Algorithm 1 and equations (8) and (9) of the original).
+% Point: no oversampling is actually performed. The paper proves that training on oversampled, balanced PN data is
+% equivalent to rewriting the risk in the reweighted form above, which then drops straight into the non-negative
+% correction of nnPU. The naive alternative, reweighting only the P data by pi', is explicitly ruled out: it implies
+% P_balanced(x) = P(x), which holds only when pi' = pi, that is, when no oversampling has taken place.
+% The rewriting is orthogonal to nnPU, so any nnPU-based method (self-training, meta-learning, distillation) can swap
+% its objective for equation (9).
+\end{document}

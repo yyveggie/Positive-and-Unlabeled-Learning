@@ -1,0 +1,27 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Bagging PU} % algorithm title 
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;K=$ size of bootstrap samples; $T=$ number of bootstraps
+	    \ENSURE
+	    a score $s$ \\
+	    Initialize $\forall x\in$ future sets \\
+	    \STATE $f(x) \leftarrow 0$ 
+		\FOR{$t\leftarrow 1$ to $T$} 
+		\STATE Draw a bootstrap sample $U_t$ of size $K$ in $U$
+		\STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U_t$
+		\STATE $f_t\leftarrow$ Generate a classifier$(P,U_t)$
+		\STATE For any $x$, update:
+		\STATE $f(x)\leftarrow f(x)+f_t(x)$
+		\ENDFOR
+		\RETURN $s(x)\leftarrow f(x)/T$ for $x\in$ future sets \\
+	\end{algorithmic}
+\end{algorithm}
+\end{document}

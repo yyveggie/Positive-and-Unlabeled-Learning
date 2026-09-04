@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{CR-SVM} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;l=$ noise level; $\alpha=$ adjust the relative impact of the positive samples; $\beta=$ adjusting the relative impact of the negative samples
+	    \ENSURE
+	    Classifier $f$ \\
+	    \STATE $PN\leftarrow \emptyset$
+	    \FOR{$x_j\in P$}
+	    \STATE $pr\leftarrow \frac{1}{|P|}*\sum_{j=1}^{|P|}\frac{x_j}{\left\|{x}_{j}\right\|}$
+	    \ENDFOR
+	    \STATE $pr\leftarrow pr/\left\|pr\right\|$
+	    \FOR{$x_j\in P$}
+	    \STATE Compute $sim(pr,x_j)$
+	    \ENDFOR
+	    \STATE Sort all the samples $x_j\in P$ according to $sim(pr, x_j)$ in decreasing order
+	    \STATE $\omega\leftarrow sim(pr,x_p)$ where $x_p$ is ranked in the position of $(1-l)*|P|$
+	    \FOR{each $x_i\in U$}
+	    \IF{$sim(pr,x_i)<\omega$}
+	    \STATE $PN\leftarrow PN\cup x_i$
+	    \ENDIF
+	    \ENDFOR
+	    \STATE $RN\leftarrow \emptyset$
+	    \STATE $p\leftarrow \alpha \frac{1}{|P|} \sum_{d_i \in P} \frac{\vec{d_i}}{\|\vec{d_i}\|}-\beta \frac{1}{|PN|} \sum_{x_j \in PN} \frac{\vec{x_j}}{\|\vec{x_j}\|}$
+	    \STATE $n\leftarrow \alpha \frac{1}{|PN|} \sum_{x_j \in PN} \frac{\vec{x_j}}{\|\vec{x_j}\|}-\beta \frac{1}{|P|} \sum_{x_i \in P} \frac{\vec{x_i}}{\|\vec{x_i}\|}$
+	    \FOR{$x_i$ in $U$}
+	    \IF{$sim(x_i,n)>sim(x_i,p)$}
+	    \STATE $RN\leftarrow RN\cup x_i$
+	    \ENDIF
+	    \ENDFOR
+	    \STATE $Q\leftarrow U-RN$
+	    \STATE $i\leftarrow 1$
+	    \STATE Assigned the label 1 to each sample in $P$
+	    \STATE Assigned the label 0 to each sample in $RN$
+	    \STATE $S_i\leftarrow$ Generate a SVM classifier$(P,RN)$
+	    \STATE Classify $Q$ using $S_i$
+	    \STATE Let the set of samples in $Q$ that are classified as negative be $W$
+	    \IF{$|W|\not=0$}
+	    \STATE $Q\leftarrow Q-W$
+	    \STATE $RN\leftarrow RN\cup W$
+	    \STATE $i\leftarrow i+1$
+	    \STATE go to (28)
+	    \ELSE
+	    \STATE break
+	    \ENDIF
+	    \STATE Classify $P$ using $S_{last}$
+	    \IF{more than 5\% $P$ are classified as negative}
+	    \STATE $f\leftarrow S_1$
+	    \ELSE
+	    \STATE $f\leftarrow S_{last}$
+	    \ENDIF
+	    \RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

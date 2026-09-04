@@ -1,0 +1,39 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Spy-EM} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P,U,s=$ spies
+	    \ENSURE
+	    Classifier $f$ \\
+		\STATE $RN\leftarrow \emptyset$ \\
+		\STATE $S\leftarrow Sample(P,s\%)$ \\
+		\STATE $Us\leftarrow U\cup S$
+		\STATE $Ps\leftarrow P-S$
+		\STATE Assigned the label $c_1$ 1 to each sample in $Ps$
+		\STATE Assigned the label $c_2$ 0 to each sample in $Us$
+		\STATE $NB-C\leftarrow$ Generate a naive bayesian classifier$(Ps,Us)$
+		\WHILE{classifier parameters change}
+		\FOR{$x_i\in Us$}
+		\STATE Compute $Pr(c_1|x_i)$ using the current $NB-C$
+		\STATE $Pr(c_2|x_i)\leftarrow 1-Pr(c_1|x_i)$
+		\STATE Update $Pr(x_i|c_1)$ and $Pr(c_1)$ given the probabilistically assigned class for $x_i(Pr(c_1|x_i))$ and $Ps$(a new $NB-C$ is being built in the process)   
+		\ENDFOR
+		\ENDWHILE
+		\STATE Classify $Rs$ using $NB-C$
+		\STATE Determine a probability threshold $th$ using $S$
+		\FOR{$x\in Us$} 
+		\IF{its probability $Pr(1|x)<th$} 
+		\STATE $RN\leftarrow RN\cup x$ \\
+		\ENDIF
+        \ENDFOR
+        \STATE $f\leftarrow$ Generate a classifier$(P,RN)$
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

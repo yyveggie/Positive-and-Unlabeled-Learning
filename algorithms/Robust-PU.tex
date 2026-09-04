@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Robust-PU (curriculum learning with noise-negative self-correction)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Training data $(\mathcal{X}_{p},\mathcal{X}_{u})$; iteration number $T$; epoch number $E$;
+	    temperature $\tau$; pacing function $F(\cdot)$
+	    \ENSURE
+	    Model parameter $\theta$
+	    \STATE Initialize the model by pre-training using nnPU % nnPU pre-training gives the difficulty measure a usable starting point
+	    \FOR{$t=1$ \TO $T$}
+	    \STATE \textbf{Stage 1: hardness measurement}
+	    \STATE Measure the hardness $d_{i}$ of each sample in $\mathcal{X}_{p}$ and $\mathcal{X}_{u}$:
+	    \STATE \quad logistic: $d_{i}=\log\!\left(1+\exp(-\tilde{y}_{i}z_{i}/\tau)\right)$,\qquad
+	    sigmoid: $d_{i}=\dfrac{\exp(-\tilde{y}_{i}z_{i}/\tau)}{1+\exp(-\tilde{y}_{i}z_{i}/\tau)}$ % the pseudo-truth y~ is +1 on P and -1 on U; temperature scaling calibrates the uncertainty
+	    \STATE \textbf{Stage 2: sample weighting}
+	    \STATE $\lambda\leftarrow F(t)$ \quad (a pacing function increasing monotonically from
+	    $\lambda_{0}$ to $\beta$) % the threshold widens as training proceeds, moving from easy to hard and from clean to noisy
+	    \STATE $v_{i}^{\ast}\leftarrow \exp\!\left(-\dfrac{d_{i}}{\lambda^{2}}\right)$ % harder instances get smaller weights; they are downweighted rather than discarded, hence self-correction
+	    \STATE \textbf{Stage 3: weighted supervised training}
+	    \FOR{epoch $=1$ \TO $E$}
+	    \STATE Set the ground-truth label of unlabeled data to $0$ % this stage turns the semi-supervised problem into a weighted supervised one
+	    \STATE Update $\theta$ by minimising the weighted supervised loss
+	    \ENDFOR
+	    \ENDFOR
+		\RETURN $\theta$
+	\end{algorithmic}
+\end{algorithm}
+% Zhu et al., KDD 2023 (arXiv 2308.00279), "Robust Positive-Unlabeled Learning via
+% Noise Negative Sample Self-correction". Compiled from Algorithm 1 and equations (1), (2) and (3) of the original.
+% Difference from the classical two-step methods: those select reliable negatives once and fix them, whereas Robust-PU
+% makes no hard selection. Difficulty and weights are recomputed every round and the threshold lambda widens
+% monotonically under a pacing function, so an instance wrongly taken as negative can be corrected in a later round.
+% Trade-off between the two difficulty measures, compared experimentally in the original: the logistic form is smoother
+% and admits unlabeled data gradually, while the sigmoid form is bounded and admits it in steps.
+% Equations (4) to (7) of the original give several pacing functions and equation (8) the weighted third-stage loss.
+\end{document}

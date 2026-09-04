@@ -1,0 +1,47 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PUDA (PU risk with adversarial data augmentation for KG completion)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Knowledge graph $\mathcal{K}$ of observed (positive) triples $s^{p}$;
+	    unlabeled triple sets $S_{i}^{u}$; scoring function $\varphi(\cdot\,;\Theta)$;
+	    class prior $\pi$; generator $G$; discriminator $D$; samples per positive $M$
+	    \ENSURE
+	    Scoring model $\varphi(\cdot\,;\Theta)$
+	    \STATE \textbf{Setting:} in KG completion an unobserved triple is not a negative, only unlabeled;
+	    treating it as negative injects false negatives % treating it as negative is exactly the problem PU learning addresses
+	    \STATE \textbf{(a) Pairwise PU risk estimator}
+	    \STATE \quad Do not force $\sigma(\varphi(s))\to 1$ on positives and $\to 0$ on unlabeled;
+	    only require the positive triple to rank above the unlabeled ones % KGC targets a ranking, not an absolute score
+	    \STATE \quad For a positive $s_{i}^{p}$ and each $s_{ij}^{u}\in S_{i}^{u}$, optimise the pairwise ordering
+	    $\ln\sigma\!\left(\varphi(s_{i}^{p};\Theta)-\varphi(s_{ij}^{u};\Theta)\right)$
+	    \STATE \quad Embed this pairwise term into the nnPU risk, keeping the bias-cancelling
+	    negative-risk correction of Kiryo et al. % the pairwise ranking loss is placed inside the nnPU risk structure, keeping the non-negative correction
+	    \STATE \textbf{(b) Adversarial data augmentation}
+	    \STATE \quad $D(s;\Theta)\leftarrow \varphi(s;\Theta)$ % the discriminator is the scoring function itself; no extra network is introduced
+	    \STATE \quad $G$ generates synthetic triples $s_{ij}^{\ast}$ to augment the scarce positives % positive triples are a tiny fraction of all possible triples, so the data is sparse
+	    \STATE \quad Minimax game:
+	    $\min_{D}\max_{G}\ \dfrac{1}{|\mathcal{K}|}\sum_{i=1}^{|\mathcal{K}|}\dfrac{1}{M}\sum_{m=1}^{M}
+	    -\ln\sigma\!\left(\varphi(s_{i}^{p};\Theta)-\varphi(s_{ij}^{\ast};\Theta)\right)$
+	    \STATE \quad Fixed $G$: minimising trains $D$ so that $s_{i}^{p}$ ranks above $s_{ij}^{\ast}$
+	    \STATE \quad Fixed $D$: maximising trains $G$ to produce $s_{ij}^{\ast}$ that outrank $s_{i}^{p}$ % generating hard samples forces the discriminator to refine its boundary
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample positives from $\mathcal{K}$ and unlabeled triples sharing the same head--relation (or tail--relation)
+	    \STATE Update $G$ and $D$ alternately on the unified objective combining (a) and (b)
+	    \ENDWHILE
+		\RETURN $\varphi(\cdot\,;\Theta)$
+	\end{algorithmic}
+\end{algorithm}
+% Tang et al., IJCAI 2022 (arXiv 2205.00904), "Positive-Unlabeled Learning with Adversarial
+% Data Augmentation for Knowledge Graph Completion". The original has no numbered algorithm block; compiled from
+% Sections 4.1 and 4.2 and equations (13) and (14). Code: github.com/lilv98/PUDA-IJCAI22
+% Both modifications are necessary:
+% (1) the original PU risk estimator rests on a pointwise loss, which does not fit the ranking objective of KGC, so it
+%     is rewritten in pairwise ranking form; (2) positive triples are extremely sparse, so adversarially generated
+%     synthetic triples augment them. The record also belongs to graph PU; it is filed by its main contribution, augmentation.
+\end{document}

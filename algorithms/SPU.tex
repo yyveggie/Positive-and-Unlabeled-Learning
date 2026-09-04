@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{SPU: positive-unlabeled learning in streaming networks}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Event stream over times $t\in T$ with arriving observations $L_{t}$;
+	    threshold $\theta$; noise $\sigma_{E}^{2}$; drift variances $\sigma_{U}^{2},\sigma_{V}^{2}$;
+	    rate $\lambda$; window $\Delta t$
+	    \ENSURE
+	    Posterior moments of the latent factors and link predictions
+	    \STATE \textbf{Model:} $L_{ij}^{t}=1$ marks an observed link; $L_{ij}^{t}=0$ is
+	    \emph{unlabeled}. A latent indicator $O_{ij}^{t}$ says whether the true state is
+	    observable, and a latent $X_{ij}^{t}$ carries the common interest;
+	    a link is present when $X_{ij}^{t}>\theta$ % the PU structure sits in O: an unobserved link does not mean no relation
+	    \FORALL{event times $t\in T$}
+	    \STATE \textbf{Drift step:} for an existing node, propagate by Brownian motion ---
+	    $\mu_{U_{i}}=\mathbb{E}_{q}(U_{i}^{t-\tau})$,\quad
+	    $\Sigma_{U_{i}}=\mathrm{Cov}_{q}(U_{i}^{t-\tau})+\sigma_{U}^{2}\tau I$ % the gap tau since the last relevant event drives the growth in uncertainty, which is concept drift
+	    \STATE \quad For a newborn node, initialise at the population mean of current preferences
+	    \STATE \textbf{Observability prior:}
+	    $\eta_{t}\leftarrow$ the recent ratio of new links to newly active pairs over
+	    $(t-\Delta t,t)$;\quad $p(O_{ij}^{t}=1)=\min\{\lambda\eta_{t},1\}$
+	    \STATE \textbf{Variational update} (mean-field; repeat to convergence):
+	    \STATE \quad (a) $\mathrm{Cov}_{q}(U_{i}^{t})=\Big(\Sigma_{U_{i}}^{-1}
+	    +\sigma_{E}^{-2}\sum_{j}q(O_{ij}^{t}=1)\,\mathbb{E}_{q}\!\left[V_{j}V_{j}^{\top}\right]\Big)^{-1}$,
+	    and $\mathbb{E}_{q}(U_{i}^{t})$ correspondingly % each observation is weighted by its observability, which is where the PU correction acts
+	    \STATE \quad (b) symmetric update for $V_{j}^{t}$
+	    \STATE \quad (c) $\mathbb{E}_{q}(X_{ij}^{t})$ from a \emph{truncated} Gaussian: truncate
+	    above $\theta$ when $L_{ij}^{t}=1$, below $\theta$ otherwise % the truncation direction depends on whether the edge was observed
+	    \STATE \quad (d) $q(O_{ij}^{t}=1)=1$ if $L_{ij}^{t}=1$; otherwise
+	    $\dfrac{p\,e^{\kappa}}{1+p\,(e^{\kappa}-1)}$ with
+	    $\kappa\approx\ln\Phi\!\left(\frac{\theta-\mathbb{E}_{q}(U_{i})^{\top}\mathbb{E}_{q}(V_{j})}{\sigma_{E}}\right)$
+	    \STATE \textbf{Predict:} for pairs with $L_{ij}^{t}=0$, score
+	    $\mathbb{E}_{q}(X_{ij}^{t+})\approx \mathbb{E}_{q}(U_{i}^{t})^{\top}\mathbb{E}_{q}(V_{j}^{t})$
+	    and report those above $\theta$
+	    \ENDFOR
+		\RETURN posterior moments and predicted links
+	\end{algorithmic}
+\end{algorithm}
+% Chang et al., KDD 2016, "Positive-Unlabeled Learning in Streaming Networks".
+% Two problems are modelled together:
+% (1) PU. In a bipartite network an unobserved edge does not mean no relation, so a latent variable O_ij records
+%     whether the state is observable. The variational probability q(O_ij = 1) appears in the weighted sums of steps
+%     (a) and (b), which downweights each negative in proportion to how likely it is merely unobserved;
+% (2) concept drift. Latent node vectors evolve by Brownian motion, with variance growing linearly in the time tau
+%     since the last event, so a long-inactive node automatically acquires greater uncertainty in its preferences.
+% The observability prior comes from the recent share of new links and newly active pairs, eta_t, and adapts to the stream.
+% Computationally the mean-field approximation gives all four updates closed forms, with no Monte Carlo integration.
+% The cost is about O(|L| * I) with I iterations per time step, usually a few, so the method suits high-throughput streams.
+\end{document}

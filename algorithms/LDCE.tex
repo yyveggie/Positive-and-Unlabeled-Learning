@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{LDCE (loss decomposition and centroid estimation for PU learning)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Corrupted sample $\tilde{S}=\{(x_{1},\tilde{y}_{1}),\dots,(x_{n},\tilde{y}_{n})\}$;
+	    one-side flip rate $\rho_{\eta}$; parameters $\eta,\lambda,\beta$; number of groups $g\geq 1$
+	    \ENSURE
+	    Classifier parameter $w$
+	    \STATE \textbf{Step 1: median-of-means centroid of the corrupted negative set} % treat the whole of U as a negative class corrupted by one-sided noise
+	    \STATE Randomly partition $\tilde{S}_{N}$ into $g$ groups $\{\tilde{S}_{N}^{[1]},\dots,\tilde{S}_{N}^{[g]}\}$ of almost equal size
+	    \STATE Compute the empirical mean $\mu(\tilde{S}_{N}^{[i]})$ for each $i\in[g]$
+	    \STATE $r_{i}\leftarrow \mathrm{median}_{j}\left\{\left\|\mu(\tilde{S}_{N}^{[i]})-\mu(\tilde{S}_{N}^{[j]})\right\|_{2}\right\}$;\quad
+	    $i^{\ast}\leftarrow \arg\min_{i\in[g]}r_{i}$ % noise inflates the covariance and thickens the tails, so the ordinary mean is biased
+	    \STATE $\hat{\mu}\leftarrow \mu(\tilde{S}_{N}^{[i^{\ast}]})$
+	    \STATE \textbf{Step 2: alternate between centroid correction and risk minimisation}
+	    \STATE Compute $\hat{\Sigma}\leftarrow \hat{\Sigma}(\hat{\mu}(\tilde{S}_{N}))$
+	    \STATE Initialize $w$; $t\leftarrow 0$
+	    \REPEAT
+	    \STATE $\mu\leftarrow \hat{\mu}+\hat{\Sigma}^{-1}w\sqrt{\beta/(w^{\top}\hat{\Sigma}^{-1}w)}$ % take the least favourable centroid inside the confidence ellipsoid, which gives the robust solution
+	    \STATE $w_{t}\leftarrow \arg\min_{w}\ \dfrac{1}{n}\sum_{i=1}^{k}\ell(\tilde{y}_{i}\langle w,x_{i}\rangle)
+	    +\dfrac{1}{2n}\sum_{i=k+1}^{n}\phi(\tilde{y}_{i}\langle w,x_{i}\rangle)
+	    +\dfrac{c}{1-2\rho_{\eta}}\langle w,\mu\rangle+\lambda\|w\|^{2}$ % loss decomposition: the decomposable part is estimated as usual, the rest depends only on the centroid
+	    \STATE $t\leftarrow t+1$
+	    \UNTIL{convergence}
+		\RETURN the converged $w$
+	\end{algorithmic}
+\end{algorithm}
+% Gong et al., TPAMI 2021, 43(3):918-932 (Algorithms 1 and 2 of the original; an earlier version appeared at IJCAI 2018).
+% Recasts PU learning as risk minimization under one-sided label noise: U is taken as a corrupted negative class in
+% which corruption runs in one direction only, true positives labeled negative, at flip rate rho_eta.
+% The loss splits in two. One part is estimated without bias directly on the noisy labels; the other enters the
+% objective only through the class centroid mu, so the problem reduces to estimating that centroid robustly.
+% Theorem 2 shows the noise inflates the covariance, Sigma(D_eta) = Sigma(D) + 4 p_eta (1-p_eta) mu^T mu, and thickens
+% the tails, which is why step 1 uses a median-of-means estimate rather than the sample mean.
+% The kernel version KLDCE replaces the inner product <w,x> by an inner product after the kernel map; the flow is unchanged.
+\end{document}

@@ -1,0 +1,50 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PULDA (PU learning with label distribution alignment)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\pi=$ class prior; model $g_{\theta}$; margin $m$; EMA coefficient $\alpha$;
+	    warm-up epochs $T_{w}$; main epochs $T_{p}$
+	    \ENSURE
+	    Classifier $g_{\theta}$
+	    \STATE \textbf{Alignment target:} the \emph{expectation} of the predicted label distribution
+	    should match the ground truth, i.e. $\mathbb{E}_{P}[\hat{y}]=1$ and $\mathbb{E}_{U}[\hat{y}]=\pi$ % only the first moment is aligned, not the whole distribution
+	    \STATE \textbf{Alignment loss:}
+	    $\mathcal{L}_{\mathrm{LDA}}=2\pi\left(1-\mathbb{E}_{x\in P}[\sigma(g_{\theta}(x))]\right)
+	    +\mathrm{d}\!\left(\mathbb{E}_{x\in U}[\sigma(g_{\theta}(x))],\ \pi\right)$, \quad
+	    $\mathrm{d}(a,b)=\mathrm{softplus}(a-b)+\mathrm{softplus}(b-a)$ % a two-sided softplus penalizes both directions, so the drift is not only toward the negative class
+	    \STATE \textbf{Two-way sigmoid surrogate} (bounded on both sides, margin $m$):
+	    \STATE \quad $C^{+}(z)=\sigma(z)\,\sigma(-(z-m))$, \qquad $C^{-}(z)=\sigma(z+m)\,\sigma(-z)$
+	    \STATE \quad $\mathcal{L}_{\mathrm{2ws}}=\pi\,\mathbb{E}_{P}[C^{+}]
+	    +\mathrm{d}\!\left(\mathbb{E}_{U}[C^{-}],\ \pi\,\mathbb{E}_{P}[C^{-}]\right)$ % the nnPU truncation becomes a two-sided distance, so the negative risk is not crushed to 0
+	    \STATE \textbf{Stage 1: warm-up}
+	    \FOR{$t=1$ \TO $T_{w}$}
+	    \STATE Minimise $\mathcal{L}_{\mathrm{LDA}}$ over mini-batches of $P\cup U$
+	    \ENDFOR
+	    \STATE \textbf{Stage 2: alignment with EMA-stabilised risk terms and Mixup}
+	    \FOR{$t=1$ \TO $T_{p}$}
+	    \FORALL{mini-batches $B$}
+	    \STATE $\bar{C}_{P}^{-}\leftarrow \alpha\bar{C}_{P}^{-}+(1-\alpha)\,\mathbb{E}_{B\cap P}[C^{-}]$;\quad
+	    $\bar{C}_{U}^{-}\leftarrow \alpha\bar{C}_{U}^{-}+(1-\alpha)\,\mathbb{E}_{B\cap U}[C^{-}]$ % mini-batch estimates are noisy, so a moving average steadies the two negative-class terms
+	    \STATE $\mathcal{L}\leftarrow \pi\,\mathbb{E}_{B\cap P}[C^{+}]
+	    +\dfrac{1}{1-\alpha}\,\mathrm{d}\!\left(\bar{C}_{U}^{-},\ \pi\bar{C}_{P}^{-}\right)
+	    +\text{entropy and Mixup terms}$
+	    \STATE $\theta\leftarrow \theta-\eta\nabla_{\theta}\mathcal{L}$
+	    \ENDFOR
+	    \ENDFOR
+		\RETURN $g_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% Jiang et al., IEEE TPAMI 2023, "Positive-Unlabeled Learning with Label Distribution
+% Alignment". The original gives no numbered algorithm block; this pseudocode follows the released PULDA
+% implementation (losses/distributionLoss.py, losses/twoWaySigmoidLoss.py, train.py).
+% Difference from Dist-PU: Dist-PU aligns the whole score distribution with a differentiable histogram under an L1
+% distance, whereas PULDA aligns only its expectation, the first moment, replaces the distance by a two-sided
+% softplus, swaps in a two-way sigmoid loss bounded on both sides, and steadies the two negative risk terms by EMA.
+% Both aim to correct the negative-prediction bias that calls most unlabeled instances negative.
+\end{document}

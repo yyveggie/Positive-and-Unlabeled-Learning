@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{AlphaMax-N (class prior from noisy positives and unlabeled data)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Unlabeled sample $U=\{X_{i}^{u}\}$; \emph{noisy} positive sample $L=\{X_{i}^{l}\}$
+	    (the labeled set itself may contain negatives)
+	    \ENSURE
+	    Class prior $\hat{\alpha}^{\ast}$ and noise level $\hat{\beta}^{\ast}$
+	    \STATE \textbf{Setting:} unlike standard PU, the labeled positive set is contaminated,
+	    so both $\alpha^{\ast}$ (prior) and $\beta^{\ast}$ (purity of $L$) must be recovered % weaker than standard PU: it does not even assume the labeled positive set is pure
+	    \STATE \textbf{Step 0: univariate transform}
+	    \STATE Fit a discriminative classifier separating $L$ from $U$ and map both samples through
+	    its score % density estimation is infeasible in high dimension, so reduce to one dimension first
+	    \STATE \quad \emph{Theorem 1: such transforms are $\alpha^{\ast}$-preserving, so the prior
+	    is unchanged by this step} % this is why the reduction loses nothing of the target quantity
+	    \STATE \textbf{Step 1: two applications of AlphaMax}
+	    \STATE $\alpha^{+}\leftarrow \textsc{AlphaMax}(U,L)$
+	    \hfill \emph{maximum proportion of $L$'s component in $U$}
+	    \STATE $\beta^{+}\leftarrow \textsc{AlphaMax}(L,U)$
+	    \hfill \emph{and symmetrically} % run once in each direction; this is the crux of the nonparametric route
+	    \STATE \quad \textsc{AlphaMax}$(M,C)$ estimates the maximum proportion of component $C$
+	    in mixture $M$ by maximising the combined likelihood over the mixing weight
+	    \STATE \textbf{Step 2: recover the targets}
+	    \STATE $(\hat{\alpha}^{\ast},\hat{\beta}^{\ast})\leftarrow$ apply Equation~(7) to
+	    $(\alpha^{+},\beta^{+})$ % Lemma 1 and Theorem 1 give the closed-form relation between the two sets of quantities
+		\RETURN $\hat{\alpha}^{\ast},\hat{\beta}^{\ast}$
+	\end{algorithmic}
+\end{algorithm}
+% Jain, White, Radivojac, NeurIPS 2016 (arXiv 1606.08561), "Estimating the Class Prior
+% and Posterior from Noisy Positives and Unlabeled Data". Compiled from Section 5,
+% equation (7), Lemma 1 and Theorem 1 of the original.
+% Difference from other prior estimators: TIcE, KM and BBE all assume the labeled positive set is pure. This method
+% allows that set to be noisy, so it estimates two quantities at once, the class prior alpha* and the purity beta*.
+% Two technical routes, given side by side in the original:
+% (1) parametric MSGMM: model U and L as two Gaussian mixtures sharing components but differing in mixing proportions,
+%     estimating (alpha, beta, u0, u1, Sigma0, Sigma1) jointly with an extended EM;
+% (2) nonparametric AlphaMax-N, this pseudocode: call AlphaMax once in each direction, then invert in closed form.
+% The one-dimensional transform is not a convenience. The original proves that such discriminative transforms preserve
+% alpha*, so the curse of dimensionality is avoided without losing the quantity being estimated.
+\end{document}

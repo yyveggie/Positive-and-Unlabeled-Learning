@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{AngularPU (hyperspherical PU learning with angular regularization)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Labeled positives $D_{p}$; unlabeled set $D_{u}$;
+	    encoder $f_{\theta}:\mathcal{X}\to\mathbb{S}^{d-1}$; learnable prototype $\mu\in\mathbb{S}^{d-1}$;
+	    scale $\kappa>0$; temperature $t$; weights $\lambda_{u},\lambda_{r}$
+	    \ENSURE
+	    Encoder $f_{\theta}$ and prototype $\mu$
+	    \STATE \textbf{Directional score:} $s(z)=\kappa\,\mu^{\top}z$ where $z=f_{\theta}(x)$ % inspired by the von Mises-Fisher distribution; kappa controls the sharpness of the score
+	    \STATE \quad No explicit negative modelling: classification is thresholding $\mu^{\top}z$ % the positive class is represented by one learnable prototype, so no negative model is needed
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample $P\subset D_{p}$, $U\subset D_{u}$;\quad $z_{i}=f_{\theta}(x_{i})$ ($\ell_{2}$-normalised)
+	    \STATE $\mathcal{L}_{pos}=-\dfrac{1}{|P|}\sum_{i\in P}\kappa\,\mu^{\top}z_{i}$
+	    \hfill \emph{pull positives toward $\mu$}
+	    \STATE $\mathcal{L}_{unlab}=-\dfrac{1}{|U|}\sum_{j\in U}\left[0.5\log\sigma(\ell_{j})+0.5\log\big(1-\sigma(\ell_{j})\big)\right]$,\quad
+	    $\ell_{j}=\kappa\mu^{\top}z_{j}$ % neutral supervision: E[y]=0.5, so ambiguous unlabeled points receive no overconfident update
+	    \STATE $\mathcal{L}_{reg}=\log\left(\dfrac{1}{|U|^{2}}\sum_{i,j\in U}e^{t\,z_{i}^{\top}z_{j}}\right)$ % angular dispersion term: it suppresses pairwise cosine similarity among unlabeled samples
+	    \STATE \quad \emph{counteracts unlabeled embeddings clustering near $\mu$ (false positives)} % without it the unlabeled points crowd toward the prototype
+	    \STATE $\mathcal{L}=\mathcal{L}_{pos}+\lambda_{u}\mathcal{L}_{unlab}+\lambda_{r}\mathcal{L}_{reg}$
+	    \STATE Update $\theta$ and $\mu$ by gradient descent
+	    \STATE $\mu\leftarrow \dfrac{\mu}{\|\mu\|_{2}}$
+	    \hfill \emph{re-project onto the unit sphere after each update} % keeps ||mu||=1
+	    \ENDWHILE
+	    \STATE Select the decision threshold empirically on $\mu^{\top}z$ % needs neither the class prior nor the vMF normalizing constant
+		\RETURN $f_{\theta}$, $\mu$
+	\end{algorithmic}
+\end{algorithm}
+% Sevetlidis et al., TMLR 2025 (arXiv 2512.06785), "Angular Regularization for
+% Positive-Unlabeled Learning on the Hypersphere". The original has no numbered
+% algorithm block; compiled from its Section 3 and equations (1), (2) and (3).
+% Geometric inductive bias: positives concentrate near the prototype mu while negatives spread over the sphere, which
+% matches a vMF-uniform mixture whose Bayes-optimal decision is exactly a threshold on mu^T z.
+% The three loss terms divide the work: L_pos pulls in the positives, L_unlab avoids overconfidence through neutral
+% supervision, and L_reg is the critical one, since without it the unlabeled embeddings collapse toward the prototype.
+% The prior-free property comes from the empirical threshold: neither training nor the decision needs pi or C_d(kappa).
+\end{document}

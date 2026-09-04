@@ -1,0 +1,44 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{GPL (graph PU learning with label propagation loss)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Labeled positive training nodes $P$ and unlabeled training nodes $U$;
+	    class prior estimate $\pi_{p}$; original adjacency matrix $A$;
+	    outer iterations $E$; inner steps $K$
+	    \ENSURE
+	    Trained GNN classifier $f_{w}$
+	    \STATE Initialize a training GNN classifier $f_{w}$ with $A$
+	    \STATE $\hat{A}\leftarrow A$
+	    \FOR{training iteration $t=1,2,\dots,E$}
+	    \WHILE{$k<K$ or not converged}
+	    \STATE $\hat{A}=\arg\min_{\hat{A}}\mathcal{L}_{LPL}(\hat{A})^{(k)}$
+	    \hfill \emph{inner loop: reduce heterophilic edges} % heterophilic edges are downweighted; A_hat is a learnable positive mask matrix
+	    \ENDWHILE
+	    \STATE $\hat{\pi}_{p}=E_{CPE}(\hat{A})$
+	    \hfill \emph{estimate $\pi_{p}$ with the optimized $\hat{A}$} % prior estimation is itself disturbed by heterophilic structure, so it comes after heterophily is reduced
+	    \STATE Minimize $\mathcal{L}_{GNN}(\hat{\pi}_{p},w,\hat{A})$
+	    \hfill \emph{outer loop: train $f_{w}$ with $\hat{A}$ and $\hat{\pi}_{p}$}
+	    \ENDFOR
+		\RETURN $f_{w}$
+	\end{algorithmic}
+\end{algorithm}
+% Wu, Yao, Han, Yao, Liu, ICML 2024 (arXiv 2405.19919), "Unraveling the Impact of
+% Heterophilic Structures on Graph Positive-Unlabeled Learning".
+% Compiled from Algorithm 1 and equations (7), (8) and (9) of the original.
+% Problem: mainstream PU methods assume instances are generated independently, which fails on graphs, where nodes are
+% coupled by edges. The original identifies two ways heterophilic edges, those joining nodes of different classes,
+% damage graph PU: (i) they entangle the latent features of positive and negative nodes, and (ii) they make the latent
+% labels of unlabeled nodes harder to infer, which in turn degrades class-prior estimation.
+% The remedy is a bilevel optimization: the inner level learns an edge-weight matrix A_hat through a label-propagation
+% loss (LPL) that suppresses heterophilic edges, and the outer level estimates the prior and trains the GNN on a fixed
+% A_hat. The order matters: reduce heterophily, then estimate the prior, then train the classifier, because prior
+% estimation is itself affected by heterophilic structure and the error is amplified if the order is reversed.
+% LPL depends only on the observed positive nodes, which is what makes it usable under PU (ordinary label propagation
+% needs both classes). Convergence follows the standard bilevel results, using the inner solution unrolled J steps.
+\end{document}

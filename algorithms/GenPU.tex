@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{GenPU} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\pi=$ class prior; generators $\{G_p,G_n\}$; discriminators $\{D_p,D_u,D_n\}$; noise distribution $p_z$
+	    \ENSURE
+	    Classifier $f$
+	    \WHILE{not converged}
+	    \STATE Sample noise $z\sim p_z$; real batches $x_p\sim P$, $x_u\sim U$
+	    \STATE $\tilde{x}_p\leftarrow G_p(z)$;\ $\tilde{x}_n\leftarrow G_n(z)$
+	    \STATE Update $D_p$: distinguish real positives $x_p$ from generated $\tilde{x}_p$
+	    \STATE Update $D_u$: distinguish real unlabeled $x_u$ from the mixture of generated samples with proportions $\pi\,\tilde{x}_p+(1-\pi)\,\tilde{x}_n$ % drives the generated positive-negative mixture toward the unlabeled distribution
+	    \STATE Update $D_n$: distinguish real positives $x_p$ from generated negatives $\tilde{x}_n$ % pushes G_n away from the positive distribution
+	    \STATE Update $G_p$: fool $D_p$ and the positive component of $D_u$
+	    \STATE Update $G_n$: fool the negative component of $D_u$ while being rejected by $D_n$
+	    \ENDWHILE
+	    \STATE Generate a pseudo-labeled dataset: samples from $G_p$ with label 1, samples from $G_n$ with label 0 % at equilibrium both class distributions are recovered
+	    \STATE $f\leftarrow$ Generate a standard classifier on the pseudo-labeled dataset
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+% Hou et al., IJCAI 2018. A minimax game between two generators and three discriminators; at equilibrium the positive
+% and negative distributions are recovered together. Known drawback: adversarial training over five networks is
+% expensive and unstable.
+\end{document}

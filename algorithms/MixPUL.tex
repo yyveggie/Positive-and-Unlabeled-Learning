@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{MixPUL (supervised and unsupervised consistency by Mixup)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$; network $f_{\theta}$; EMA teacher $f_{\theta'}$; batch size $B$;
+	    Mixup parameter $\alpha$; margin $\eta$; weights $\beta,\gamma$
+	    \ENSURE
+	    Classifier $f_{\theta}$ (no class prior required)
+	    \STATE \textbf{Reliable negative mining} (needed because Mixup requires usable soft labels):
+	    \STATE \quad \emph{Rand}: randomly downsample $U$;\ \ \emph{Dist}: pick $x\in U$ farthest on average from $P$;
+	    \emph{NTC}: train a P-vs-U classifier and take the lowest-scoring instances % in the original's own tests random sampling works best
+	    \STATE $N\leftarrow$ the mined reliable negative subset of $U$
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample $X_{P}\subset P$ and an equally sized $X_{U}\subset U$
+	    \STATE \textbf{(a) Unsupervised consistency between unlabeled points}
+	    \STATE \quad $\hat{y}_{i}\leftarrow f_{\theta'}(x_{i})$ for $x_{i}\in X_{U}$;\quad
+	    $X_{U}\leftarrow \{(x_{i},\hat{y}_{i})\}_{i=1}^{B}$ % the soft labels come from the EMA teacher, not the current network
+	    \STATE \quad $W\leftarrow \mathrm{Shuffle}(X_{U})$;\quad draw $\lambda\sim \mathrm{Beta}(\alpha,\alpha)$
+	    \STATE \quad $X_{U}'\leftarrow \left\{\left(\lambda x_{i}+(1-\lambda)x_{r_{i}},\ \lambda\hat{y}_{i}+(1-\lambda)\hat{y}_{r_{i}}\right)\right\}_{i=1}^{B}$ % interpolation happens only between unlabeled points
+	    \STATE \quad $\mathcal{L}_{U}\leftarrow \dfrac{1}{|X_{U}'|}\sum_{(x,\hat{y})\in X_{U}'}\left\|\hat{y}-f_{\theta}(x)\right\|_{2}^{2}$
+	    \STATE \textbf{(b) Supervised consistency between $P$ and mined negatives}
+	    \STATE \quad $X_{PN}'\leftarrow$ Mixup pairs drawn from $X_{P}\cup N$ with their labels % even when paired with a false negative, the positive side keeps a true label and the loss stays useful
+	    \STATE \quad $\mathcal{L}_{PN}\leftarrow \dfrac{1}{|X_{PN}'|}\sum_{(x,\hat{y})\in X_{PN}'}\left\|\hat{y}-f_{\theta}(x)\right\|_{2}^{2}$
+	    \STATE \textbf{(c) Pairwise margin risk}
+	    \STATE \quad $\mathcal{L}_{PU}\leftarrow \dfrac{1}{|X_{P}||X_{U}|}\sum_{x_{p}\in X_{P},\,x_{u}\in X_{U}}
+	    \left|f_{\theta}(x_{u})-f_{\theta}(x_{p})+\eta\right|_{+}$ % the two consistency terms are only regularizers; this term supplies the discriminative signal
+	    \STATE $\mathcal{L}\leftarrow \mathcal{L}_{PN}+\beta\mathcal{L}_{U}+\gamma\mathcal{L}_{PU}$
+	    \STATE $\theta\leftarrow \theta-\eta_{\mathrm{lr}}\nabla_{\theta}\mathcal{L}$;\quad
+	    update the EMA parameters $\theta'$
+	    \ENDWHILE
+		\RETURN $f_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% Wei et al., arXiv 2020 (2004.09388), "MixPUL: Consistency-based Augmentation for
+% Positive and Unlabeled Learning". The original has no numbered algorithm block; compiled from Sections 3.1 and 3.2
+% and equations (1) to (9). Where the prior-free property comes from: none of the three losses involves pi, since the
+% two consistency terms are squared errors and the discriminative term is a pairwise margin. |z|_+ is z when z > 0 and
+% 0 otherwise. The original compares three ways of mining reliable negatives (Rand, Dist, NTC) and finds random
+% subsampling (Rand) the most effective.
+\end{document}

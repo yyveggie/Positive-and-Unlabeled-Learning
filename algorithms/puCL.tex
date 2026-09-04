@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{puCL / puNCE contrastive pretraining, and puPL pseudo labeling} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    PU data $X_{PU}$; batch size $b$; temperature $\tau>0$;
+	    encoder $g_{B}:\mathbb{R}^{d}\to\mathbb{R}^{k}$; projection head $h_{\Gamma}:\mathbb{R}^{k}\to\mathbb{R}^{p}$;
+	    augmentation family $\mathcal{T}$; (optionally) class prior $\pi$
+	    \ENSURE
+	    Encoder $g_{B}(\cdot)$; pseudo labels $\tilde{y}$
+	    \STATE \textbf{Part A: contrastive representation learning (Algorithm 1)}
+	    \FOR{epochs $e=1,2,\dots$ until convergence}
+	    \STATE Select mini-batch $D=\{x_{i}\}_{i=1}^{b}\sim X_{PU}$
+	    \STATE Draw $t(\cdot),t'(\cdot)\sim\mathcal{T}$;\quad
+	    $\tilde{D}=\{\tilde{x}_{i}=t(x_{i}),\ \tilde{x}_{a(i)}=t'(x_{i})\}_{i=1}^{b}$ % a multi-view batch
+	    \STATE $I=\{1,\dots,2b\}$;\quad $P=\{i\in I:x_{i}\in X_{P}\}$,\quad $U=\{j\in I:x_{j}\in X_{U}\}$
+	    \STATE $z_{j}=h_{\Gamma}\circ g_{B}(\tilde{x}_{j})$;\quad
+	    $z_{i}\cdot z_{j}=\frac{1}{\tau}\frac{z_{i}^{\top}z_{j}}{\|z_{i}\|\|z_{j}\|}$;\quad
+	    $P(i,j)=\frac{\exp(z_{i}\cdot z_{j})}{\sum_{k\in I}\mathbf{1}(k\neq i)\exp(z_{i}\cdot z_{k})}$
+	    \STATE $\mathcal{L}_{ssCL}=-\frac{1}{|I|}\sum_{i\in I}\log P(i,a(i))$
+	    \hfill \emph{unbiased, high variance} % purely self-supervised: no labels, unbiased but high variance
+	    \STATE $\mathcal{L}_{sCL\text{-}PU}=-\frac{1}{|I|}\sum_{i\in I}\Big[\mathbf{1}(i\in P)\frac{1}{|P\setminus i|}\sum_{j\in P\setminus i}\log P(i,j)
+	    +\mathbf{1}(i\in U)\frac{1}{|U\setminus i|}\sum_{j\in U\setminus i}\log P(i,j)\Big]$
+	    \hfill \emph{biased} % pulling all of U together as one class is biased
+	    \STATE $\mathcal{L}_{mCL}(\lambda)=\lambda\mathcal{L}_{sCL\text{-}PU}+(1-\lambda)\mathcal{L}_{ssCL}$,\quad $0\leq\lambda\leq 1$
+	    \STATE $\mathcal{L}_{puCL}=\frac{1}{|I|}\sum_{i\in I}\left[\mathbf{1}(x_{i}\in P)\,\ell_{mCL}^{i}(1)+\mathbf{1}(x_{i}\in U)\,\ell_{mCL}^{i}(0)\right]$ % the attraction term applies only among labeled positives; U is handled self-supervised, with no label assumed
+	    \STATE $\mathcal{L}_{puNCE}=\frac{1}{|I|}\sum_{i\in I}\left[\mathbf{1}(x_{i}\in P)\,\ell_{mCL}^{i}(1)
+	    +\mathbf{1}(x_{i}\in U)\big(\pi\,\ell_{mCL}^{i}(1)+(1-\pi)\,\ell_{mCL}^{i}(0)\big)\right]$ % with a known prior, each unlabeled instance is split softly across both sides by pi
+	    \STATE Update $B,\Gamma$ to minimise the contrastive loss
+	    \ENDFOR
+	    \STATE Return $g_{B}(\cdot)$ and discard $h_{\Gamma}(\cdot)$
+	    \STATE \textbf{Part B: puPL pseudo labeling (Algorithm 2)}
+	    \STATE $Z_{P}=\{g_{B}(x):x\in X_{P}\}$,\quad $Z_{U}=\{g_{B}(x):x\in X_{U}\}$
+	    \STATE $\tilde{y}_{i}=1\ \forall z_{i}\in Z_{P}$;\quad $\tilde{y}_{j}=0\ \forall z_{j}\in Z_{U}$
+	    \STATE $\mu_{P}=\frac{1}{|Z_{P}|}\sum_{z_{i}\in Z_{P}}z_{i}$;\quad
+	    $\mu_{N}\sim Z_{U}$ with $D(x')=\frac{\|x'-\mu_{P}\|^{2}}{\sum_{x}\|x-\mu_{P}\|^{2}}$ % negative centroids are drawn with probability weighted by distance from the positive centroid, k-means++ style
+	    \WHILE{not converged}
+	    \STATE $\forall z_{i}\in Z_{U}$: $\tilde{y}_{i}=1$ if $\mu_{P}=\arg\min_{\mu\in\{\mu_{P},\mu_{N}\}}\|z_{i}-\mu\|_{2}$, else $0$
+	    \STATE $\tilde{Z}_{P}=Z_{P}\cup\{z_{i}\in Z_{U}:\tilde{y}_{i}=1\}$;\quad
+	    $\tilde{Z}_{N}=\{z_{i}\in Z_{U}:\tilde{y}_{i}=0\}$
+	    \STATE Update cluster centers $\mu_{P},\mu_{N}$ % the labeled positives stay anchored to the positive cluster, which is what separates this from plain two-way clustering
+	    \ENDWHILE
+		\RETURN $g_{B}(\cdot)$, $\tilde{y}$
+	\end{algorithmic}
+\end{algorithm}
+% Acharya et al., arXiv 2402.06038, "Understanding Contrastive Representation Learning
+% from Positive Unlabeled Data". Transcribed line by line from Algorithms 1 and 2 of the original.
+% The bias-variance trade-off runs through the paper: ssCL is unbiased with high variance, while sCL-PU treats U as
+% one class, lowering variance at the cost of bias. puCL introduces an attraction term only among labeled positives
+% and leaves U entirely to self-supervised augmentation, assuming nothing about its labels, which avoids the bias of
+% sCL-PU while lowering variance monotonically in the supervision ratio gamma = n_P/n_U.
+% puNCE extends this when the class prior is known, counting each unlabeled instance softly on both sides by pi. The
+% original notes puNCE is sensitive to error in the prior, especially at low label counts, which is the condition for
+% using it. puPL is the downstream pseudo-labeling step: two-cluster clustering on the representation puCL learns,
+% with the labeled positives always assigned to the positive cluster.
+\end{document}

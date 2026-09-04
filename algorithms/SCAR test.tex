@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Verifying the SCAR assumption (statistical test)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    PU training data $D=\{(X_{i},S_{i}):i=1,\dots,n\}$; test statistic $T$;
+	    number of repetitions $B$; significance level $\alpha$; class prior $\pi$;
+	    label frequency $\hat{c}$
+	    \ENSURE
+	    Decision: reject SCAR or not
+	    \STATE \textbf{Approximate the positive set}
+	    \STATE Train the naive classifier using $D$ and estimate $\hat{s}(X_{i})$, $i\in U$ % the naive classifier treats the whole of U as negative
+	    \STATE Sort $\hat{s}(X_{i_{1}})\geq\dots\geq\hat{s}(X_{i_{m}})$, where $U=\{i_{1},\dots,i_{m}\}$
+	    \STATE Let $\hat{P}=L\cup\{i_{1},\dots,i_{k}\}$, where $k=n\pi(1-\hat{c})$ % the k highest-scoring instances of U join the positive set, with k fixed by the prior and the label frequency
+	    \STATE Define $\tilde{Y}_{i}=1$ if $i\in\hat{P}$, and $\tilde{Y}_{i}=0$ otherwise
+	    \STATE \textbf{Generate the distribution of $T$ under $H_{0}$}
+	    \FOR{$b\leftarrow 1$ \TO $B$}
+	    \FOR{$i\in\hat{P}$}
+	    \STATE Draw $\tilde{S}_{i}\in\{0,1\}$ such that $P(\tilde{S}_{i}=1)=\hat{c}$ % relabelling artificially at a constant probability is precisely the definition of SCAR
+	    \ENDFOR
+	    \STATE Set $\tilde{S}_{i}=0$ for $i\notin\hat{P}$
+	    \STATE Calculate $T_{b}:=T\!\left(\hat{P}_{X\mid\tilde{S}=1},\ \hat{P}_{X\mid\tilde{Y}=1}\right)$
+	    \ENDFOR
+	    \STATE \textbf{Compute the $p$-value}
+	    \STATE $T_{0}:=T\!\left(\hat{P}_{X\mid S=1},\ \hat{P}_{X\mid\tilde{Y}=1}\right)$ % the statistic under the observed labeling
+	    \STATE $p\leftarrow \dfrac{1}{B}\sum_{b=1}^{B}\mathbf{1}\{T_{b}\geq T_{0}\}$
+	    \RETURN reject SCAR if $p<\alpha$
+	\end{algorithmic}
+\end{algorithm}
+% Teisseyre, Furmańczyk, Mielniczuk, arXiv 2024 (2404.00145), "Verifying the selected
+% completely at random assumption in positive-unlabeled learning".
+% Compiled from Algorithm 1 of the original.
+% Principle: under SCAR the labeled positives and the positive class as a whole follow the same distribution, that is,
+% P_{X|S=1} = P_{X|Y=1}. The statistic T measures the gap between them (the original suggests a KL-type divergence).
+% Two technical difficulties and their remedies:
+% (1) the true positive set P is unobservable, so the naive classifier ranks the instances and the top k are added,
+%     with k = n*pi*(1-c_hat); (2) the distribution of T under the null is unknown, so the approximate positive set is
+%     relabelled at constant probability c_hat B times, and the B values of T_b simulate that distribution.
+% Use: this is the data-driven basis for choosing between a SCAR algorithm and a SAR algorithm.
+% Limitation, measured in Appendix E of this project: the test must first reconstruct the positive distribution, so
+% its power falls exactly where class overlap is severe and the prior estimate is poor. The regimes in which it is
+% most needed are the ones in which it is least reliable.
+\end{document}

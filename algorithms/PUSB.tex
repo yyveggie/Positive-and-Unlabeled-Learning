@@ -1,0 +1,20 @@
+\documentclass{article}
+\usepackage{algorithm,algorithmic,amsfonts,amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PUSB} % algorithm title 
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P,U,T,\pi=$\ class prior
+	    \ENSURE
+	    a classifier $h$ \\
+		\STATE Calculate the density ratio $\hat{r}$\ as\ $\hat{r}=\frac{1}{\pi} \underset{f\in \mathcal{H}}{\arg \min}\left[-\pi \hat{\mathbb{E}}_{p}^{\mathrm{bias}}[\log (f(X))]+\pi \hat{\mathbb{E}}_{p}^{\mathrm{bias}}[\log (1-f(X))]-\hat{\mathbb{E}}_{u}[\log(1-f(X))]+\mathcal{R}(f)\right]$ \\
+		\STATE Calculate the threshold ${\theta}_{\pi}$\ as\ $\left\lceil\pi n^{\mathrm{te}}\right\rceil=\sum_{i=1}^{n^{\mathrm{te}}} \mathbf{1}\left[\hat{r}\left(\boldsymbol{x}_{i}^{\mathrm{te}}\right)>\hat{\theta}_{\pi}\right]$ \\
+		\STATE Obtain a classifier\ $h(\boldsymbol{x})=\operatorname{sign}\left(r(\boldsymbol{x})-\theta_{\pi}\right)$ \\
+		\RETURN $h$ \\
+	\end{algorithmic}
+\end{algorithm}
+\end{document}

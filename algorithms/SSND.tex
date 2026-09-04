@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{SSND (semi-supervised novelty detection via reduction to NP classification)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Labeled nominal sample from $P_{0}$; unlabeled contaminated sample from
+	    $P_{X}=(1-\pi)P_{0}+\pi P_{1}$; false-positive budget $\alpha$;
+	    classifier family $\mathcal{F}$
+	    \ENSURE
+	    Novelty detector; confidence interval and test for the contamination level $\pi$
+	    \STATE \textbf{Reduction:} treat the nominal sample as class $0$ and the \emph{unlabeled}
+	    sample as class $1$, then solve a Neyman--Pearson problem % the key step: rather than isolating the novel class, the unlabeled set as a whole becomes the other class
+	    \STATE \quad Minimise the miss rate on the unlabeled sample subject to
+	    $\mathrm{FPR}\leq\alpha$ on the nominal sample
+	    \STATE \quad \emph{The NP-optimal rule for this surrogate problem coincides with the
+	    NP-optimal novelty detector} --- unlabeled data therefore carry real information about
+	    the novelty distribution % this is the central argument: unlabeled data is not noise but information about the novelty distribution
+	    \STATE \textbf{Inference on the contamination level $\pi$}
+	    \STATE $\kappa^{\ast}\leftarrow \inf_{S}\dfrac{P_{X}(S)}{P_{0}(S)}$ over measurable sets $S$
+	    with $P_{0}(S)>0$ % only this infimum is identifiable, not pi itself
+	    \STATE \quad Under \emph{irreducibility} of $P_{1}$ with respect to $P_{0}$,
+	    $\kappa^{\ast}=1-\pi$, giving consistent estimation of $\pi$ % the irreducibility assumption, which ReCPE later shows cannot be verified
+	    \STATE Form a distribution-free \emph{one-sided} confidence interval for $\pi$ from the
+	    empirical version of $\kappa^{\ast}$
+	    \STATE Test $H_{0}:\pi=0$, a general form of the two-sample problem % tests whether the unlabeled set really contains novel instances
+	    \STATE \textbf{Hybrid rule:} revert to inductive novelty detection when the test does not
+	    reject $\pi=0$; otherwise keep the NP reduction % when pi = 0 the unlabeled data is useless and the method falls back automatically
+		\RETURN the detector, the interval for $\pi$, and the test decision
+	\end{algorithmic}
+\end{algorithm}
+% Blanchard, Lee, Scott, JMLR 2010, 11:2973-3009, "Semi-Supervised Novelty Detection".
+% The original has no numbered algorithm block; compiled from the NP reduction of Sections 1 and 3 and the inference section.
+% Two lasting influences:
+% (1) the reduction itself, showing that unlabeled data plays a substantive part in novelty detection and is not merely noise;
+% (2) the identifiability analysis. The mixing proportion is not identifiable; what is identifiable is the infimum
+%     kappa* = inf_S P_X(S)/P_0(S), and kappa* equals 1 - pi only under the irreducibility assumption. Almost every
+%     distribution-free class-prior estimator since has adopted that assumption, and ReCPE (ICLR 2022) shows it cannot
+%     be verified and that estimates run systematically high when it fails.
+% Motivation for the mixture rule: when pi = 0 the unlabeled data holds no novel instances and the NP reduction loses
+% its point, so H_0: pi = 0 is tested first and a traditional one-class method is used if it is not rejected.
+\end{document}

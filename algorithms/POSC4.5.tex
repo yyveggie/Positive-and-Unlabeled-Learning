@@ -1,0 +1,30 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{POSC4.5} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    PU dataset $\{(x_i,s_i)\}$; label frequency $c$ (or class prior via conversion)
+	    \ENSURE
+	    Decision tree $f$
+	    \STATE \textbf{function} \textsc{BuildTree}(node $i$ with example set $D_i$)
+	    \STATE \quad $T_i\leftarrow |D_i|$; $L_i\leftarrow$ number of labeled examples in $D_i$
+	    \STATE \quad $\hat{P}_i\leftarrow \min\{L_i/c,\ T_i\}$ % estimated number of positives in the node, capped at the total
+	    \STATE \quad $\hat{N}_i\leftarrow T_i-\hat{P}_i$ % estimated number of negatives in the node
+	    \IF{stopping criterion holds (purity / minimum size / depth)}
+	    \STATE make node $i$ a leaf with class $\arg\max(\hat{P}_i,\hat{N}_i)$
+	    \ELSE
+	    \STATE for each candidate attribute split, compute entropy / gain ratio using the estimated counts $(\hat{P},\hat{N})$ of the child nodes % the C4.5 criterion, with the counts replaced by PU estimates
+	    \STATE choose the best split and recurse \textsc{BuildTree} on each child
+	    \ENDIF
+	    \STATE prune the tree as in C4.5
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+% Denis et al., 2005. One of the earliest PU methods: the data is left untouched and the positive and negative counts
+% inside C4.5 are replaced by estimates derived from the label frequency, which yields unbiased probabilities.
+\end{document}

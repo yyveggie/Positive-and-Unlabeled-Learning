@@ -1,0 +1,39 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{pen-L1 (class-prior estimation via penalized $L_{1}$-distance)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Positive samples $\{x_{i}\}_{i=1}^{n_{p}}$; unlabeled samples $\{x_{j}'\}_{j=1}^{n_{u}}$;
+	    basis functions for the density-ratio model
+	    \ENSURE
+	    Class-prior estimate $\hat{\pi}$
+	    \STATE \textbf{Partial matching:} fit $\pi p(x\mid y=1)$ to the unlabeled marginal $p(x)$
+	    under an $f$-divergence % only the positive part of the mixture is matched
+	    \STATE \textbf{Failure of the naive form:} for $f$ whose minimum is attained at $t\geq 1$,
+	    naive partial matching \emph{overestimates} the class prior % this is the paper's diagnosis and the defect it sets out to repair
+	    \STATE \textbf{Penalization:} replace $f(t)$ by
+	    $\tilde{f}(t)=\begin{cases} f(t) & 0\leq t\leq 1\\ \infty & \text{otherwise}\end{cases}$ % penalizing the region t > 1 offsets the error caused by the missing negatives
+	    \STATE \quad With the penalized divergence, the class prior is correctly recovered
+	    \STATE \textbf{Choice of divergence:} take $f$ to be the $L_{1}$-distance
+	    \STATE \quad The penalized $L_{1}$-distance admits an \emph{analytic} estimator ---
+	    no iterative optimization is required % the practical reason for choosing L1: a closed form, so it is cheap
+	    \STATE Compute $\hat{\pi}$ from the analytic expression using the empirical averages
+	    over $\{x_{i}\}$ and $\{x_{j}'\}$
+		\RETURN $\hat{\pi}$
+	\end{algorithmic}
+\end{algorithm}
+% Christoffel, Niu, Sugiyama, ACML 2015 (PMLR 45:221-236), "Class-prior estimation for
+% learning from positive and unlabeled data". Compiled from Section 2 and Table 1 of the original.
+% Two contributions side by side:
+% (1) diagnosis. It extends the analysis of du Plessis and Sugiyama (2014) for the Pearson divergence to general
+%     f-divergences and shows that naive partial matching systematically overestimates the class prior;
+% (2) correction. Penalizing f, taking it infinite for t > 1, cancels the error caused by the missing negatives.
+% The L1 distance is chosen for practicality: after penalization it yields an analytical estimator computable
+% directly, with no iterative optimization. Uniform deviation and estimation error bounds are also given.
+% It forms one half of a two-step line of work with the PE direct estimator (Pearson divergence) from the same group.
+\end{document}

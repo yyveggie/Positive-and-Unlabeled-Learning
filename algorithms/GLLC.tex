@@ -1,0 +1,53 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{GLLC (global and local learning from positive and unlabeled examples)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    $X=(P,U)$ with $p$ positives and $u$ unlabeled points; test set $Q$;
+	    grids for $\lambda$, $C_{p}$, $C_{n}$, $\sigma$; folds $N_{\mathrm{fold}}$
+	    \ENSURE
+	    Decision function $f$ and predictions on $Q$
+	    \STATE \textbf{Part 1: parameter selection by cross-validation}
+	    \STATE Split $X$ into $N_{\mathrm{fold}}$ folds $X_{i}=(P_{i},U_{i})$
+	    \FORALL{candidate $(\lambda,C_{p},C_{n},\sigma)$}
+	    \FOR{$i=1$ \TO $N_{\mathrm{fold}}$}
+	    \STATE Fit the model on the remaining folds (Part 2, steps 10--13)
+	    \STATE $\hat{F}^{(i)}\leftarrow \dfrac{r_{p}^{2}}{\Pr(f(x)=1)}$,
+	    with $r_{p}$ the recall on validation positives % no negatives are available under PU, so the Lee-Liu approximate F-measure is used; it needs only positive recall and the predicted-positive rate
+	    \ENDFOR
+	    \ENDFOR
+	    \STATE Keep $(\lambda^{\ast},C_{p}^{\ast},C_{n}^{\ast},\sigma^{\ast})$ maximising the mean
+	    $\hat{F}$
+	    \STATE \textbf{Part 2: fit on the full training set}
+	    \STATE $w_{jk}\leftarrow \exp\!\left(-\|x_{j}-x_{k}\|^{2}/2\sigma^{\ast 2}\right)$ if
+	    $x_{j},x_{k}$ are mutual neighbours, else $0$;\quad
+	    $D_{jj}\leftarrow \sum_{k}w_{jk}$;\quad $L\leftarrow D-W$ % local term: manifold regularization, requiring neighbouring instances to share a class
+	    \STATE $C\leftarrow \mathrm{diag}(C_{p}^{\ast},\dots,C_{p}^{\ast},C_{n}^{\ast},\dots,C_{n}^{\ast})$ % global term: positives and unlabeled instances receive different penalties, the latter treated as a noisy negative class
+	    \STATE Build the kernel matrix $K$ (linear: $K=X(\lambda^{\ast}I+X^{\top}LX)^{-1}X^{\top}$;
+	    nonlinear: an RBF kernel)
+	    \STATE Solve the KKT linear system of the paper's Eq.~(32) for $(\alpha^{\ast},b^{\ast})$;
+	    abort if the coefficient matrix is singular % the LS-SVM structure reduces the solution to one linear system rather than a quadratic program
+	    \STATE \textbf{Predict:}
+	    $y=\mathrm{sign}\!\left(\sum_{j=1}^{p+u}\alpha_{j}^{\ast}y_{j}K(x,x_{j})+b^{\ast}\right)$
+	    for $x\in Q$
+		\RETURN $f$ and the predicted labels
+	\end{algorithmic}
+\end{algorithm}
+% Ke, Ting et al., Applied Intelligence, 2018, "Global and Local Learning from Positive
+% and Unlabeled Examples".
+% The words global and local in the name correspond to the two regularizers. Global: a biased least-squares SVM applies
+% different penalties C_p and C_n to positives and unlabeled instances, the latter treated as a noisy negative class.
+% Local: the graph Laplacian L = D - W imposes a manifold constraint requiring neighbours to share a class.
+% Efficiency trade-off: unlike Biased SVM, which requires a quadratic program, the equality constraints of an LS-SVM
+% reduce the problem to a single linear system, which is faster on large data.
+% Model selection uses the Lee-Liu approximate F-measure r_p^2 / Pr(f(x)=1), which depends only on positive recall and
+% the predicted-positive rate and needs no negatives. The experiments in this survey use it as one PU-only criterion.
+%
+% Note: the block structure of the coefficient matrix M on line 13 is given in equation (32) and Table 1 of the
+% original. This pseudocode refers to that structure without restating it term by term.
+\end{document}

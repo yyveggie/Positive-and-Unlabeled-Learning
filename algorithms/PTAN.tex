@@ -1,0 +1,56 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PTAN (positive tree augmented naive Bayes), with the averaged variant APTAN}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Positive set $E_{1}$ ($N_{E_{1}}$ cases); unlabeled set $E_{u}$ ($N_{E_{u}}$ cases);
+	    predictors $\mathbf{X}=\{X_{1},\dots,X_{n}\}$ with $X_{i}$ taking $r_{i}$ values;
+	    class prior $p=P(C=1)$
+	    \ENSURE
+	    Tree structure and all conditional probability parameters
+	    \STATE \textbf{Key identity:} the negative-class parameters are \emph{not} estimated from
+	    data --- they are recovered from the unlabeled marginal by subtracting the positive
+	    contribution weighted by $p$ % this step is the defining operation of branch C: an assumed-known prior placed inside a probabilistic model
+	    \STATE \textbf{Stage 1: structure learning}
+	    \STATE Estimate $P(x_{ij}\mid 1)$ from $E_{1}$ with Laplace smoothing
+	    \STATE $R_{i}(j)\leftarrow N_{ij}^{E_{u}}-P(x_{ij}\mid 1)\,p\,N_{E_{u}}$;\quad
+	    normalise by $Z_{i}$ and smooth to obtain $P(x_{ij}\mid 0)$ % the negative marginal is U minus the positive contribution, truncated at zero and renormalised
+	    \STATE Repeat the same construction on \emph{pairs} to obtain
+	    $P(x_{ij},x_{kl}\mid 1)$, $P(x_{ij},x_{kl})$ and $P(x_{ij},x_{kl}\mid 0)$
+	    \STATE Compute the conditional mutual information $I(X_{i},X_{k}\mid C)$, whose two terms
+	    are weighted by $p$ and by $\big(P(x_{ij},x_{kl})-P(x_{ij},x_{kl}\mid 1)p\big)$ respectively
+	    \STATE Build the maximum spanning tree over $\mathbf{X}$ with edge weights
+	    $I(X_{i},X_{k}\mid C)$; root it and orient the edges to fix each tree parent $Pa^{\ast}(X_{i})$ % Friedman's TAN structure learning, used unchanged
+	    \STATE Set $Pa(X_{i})=\{C\}\cup Pa^{\ast}(X_{i})$
+	    \STATE \textbf{Stage 2: parameter learning}
+	    \STATE Estimate $P(x_{ij}\mid 1,pa_{i}^{\ast})$ from $E_{1}$ with Laplace smoothing
+	    \STATE Apply the same subtraction identity conditioned on $pa_{i}^{\ast}$ to obtain
+	    $P(x_{ij}\mid 0,pa_{i}^{\ast})$ % the same identity applied again, locally, at each value of the tree parent
+	    \STATE \textbf{APTAN variant:} $p$ is rarely known exactly, so treat it as
+	    $p\sim\mathrm{Beta}(a,b)$ and integrate it out
+	    \STATE \quad Negative-class probabilities take the resulting closed form; negatives are
+	    replaced by $1/r_{i}$ (resp.\ $1/(r_{i}r_{k})$) and renormalised % the integrated estimate can be negative, so it is truncated and renormalised
+	    \STATE \quad In the mutual-information term, $P(x_{ij},x_{kl}\mid 1)\,p$ is replaced by
+	    $P(x_{ij},x_{kl}\mid 1)\cdot\dfrac{a}{a+b}$ % the expectation of a Beta distribution replaces a fixed p
+		\RETURN the PTAN (or APTAN) classifier
+	\end{algorithmic}
+\end{algorithm}
+% Calvo, Larrañaga, Lozano, Pattern Recognition Letters 2007,
+% "Learning Bayesian Classifiers from Positive and Unlabeled Examples".
+% Position: extends positive naive Bayes (PNB) to a tree-augmented naive Bayes (TAN), allowing one layer of dependence
+% among the predictors instead of full conditional independence.
+% Why branch C: the defining operation of the whole paper is the identity on line 4, in which none of the negative
+% probability parameters is estimated from data. Each is the unlabeled marginal minus the positive contribution
+% weighted by p, renormalised. The structure learning, conditional mutual information plus a maximum spanning tree,
+% follows Friedman's TAN unchanged. APNB and APTAN address the case of unknown p: p is treated as a random variable
+% with a conjugate Beta(a,b) prior and integrated out over [0,1], which gives a closed-form estimate.
+% The cost is that the integrated estimate can turn negative and must be truncated to a small value and renormalised.
+%
+% Note: this pseudocode follows the concise version. The smoothing term and the full APTAN closed form are in the
+% original, and both are worth checking against it before implementing.
+\end{document}

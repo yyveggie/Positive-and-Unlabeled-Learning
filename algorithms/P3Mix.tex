@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{P$^3$Mix, P$^3$Mix-E and P$^3$Mix-C (partially positive mixup)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $\mathcal{P}\cup\mathcal{U}$: training instances; $\beta$: coefficient parameter;
+	    $\gamma$: thresholding parameter; $k$: size of the candidate mixup pool;
+	    $\alpha$: hyperparameter of mixup; $\eta$: coefficient of early-learning regularization
+	    ($\eta=0$ for P$^3$Mix and P$^3$Mix-C)
+	    \ENSURE
+	    $\Theta$: binary classifier parameters
+	    \STATE Initialize $\Theta$, the mean-teacher parameters $\widetilde{\Theta}$ and the candidate
+	    mixup pool $\mathcal{X}_{cnd}$ randomly; translate $\mathcal{U}$ into $\widetilde{\mathcal{U}}$
+	    \FOR{$t=1,2,\dots,MaxEpoch$}
+	    \STATE Shuffle $\mathcal{P}\cup\widetilde{\mathcal{U}}$ into $I$ mini-batches; denote the
+	    $i$-th by $(\mathcal{X}_{p}^{i},\mathcal{X}_{u}^{i})$
+	    \FOR{$i=1,2,\dots,I$}
+	    \STATE Estimate marginal pseudo-negative instances $\mathcal{X}_{mpn}$ using Eq.(6) % pseudo-negatives near the boundary, the basis for choosing mixup partners
+	    \STATE Select the mixup partners for each instance within
+	    $\mathcal{X}_{p}^{i}\cup\mathcal{X}_{u}^{i}$ using Eq.(5) % for ambiguous unlabeled instances, draw a partner from the positives near the learned PU boundary
+	    \STATE Set labels of $\{(\mathbf{x},y=0)\mid (\mathbf{x},y=0)\in\mathcal{X}_{u}^{i},\,
+	    f(\mathbf{x};\Theta)>\gamma\}$ to $1$
+	    \hfill $\triangleright$ Optional for P$^3$Mix-C % the -C variant relabels high-scoring unlabeled instances as positive
+	    \STATE Construct $\widehat{\mathcal{X}}_{p}^{i}\cup\widehat{\mathcal{X}}_{u}^{i}$ by applying
+	    Eq.(4) to $\mathcal{X}_{p}^{i}\cup\mathcal{X}_{u}^{i}$ and their mixup partners
+	    \STATE Estimate $\{\widetilde{\mathbf{y}}_{j}\}_{j=1}^{|\widehat{\mathcal{X}}_{p}^{i}|+|\widehat{\mathcal{X}}_{u}^{i}|}$
+	    for instances in $\widehat{\mathcal{X}}_{p}^{i}\cup\widehat{\mathcal{X}}_{u}^{i}$ by $f(\cdot;\widetilde{\Theta})$
+	    \hfill $\triangleright$ Optional for P$^3$Mix-E % the -E variant takes targets from a mean teacher for the early-learning regularizer
+	    \STATE Update $\Theta$ by $\nabla_{\Theta}\Big(\mathcal{L}(\widehat{\mathcal{X}}_{p}^{i},
+	    \widehat{\mathcal{X}}_{u}^{i};\Theta)+\eta\,\mathcal{R}_{elr}\big(\{(\widehat{\mathbf{x}}_{j},
+	    \widetilde{\mathbf{y}}_{j})\}_{j=1};\Theta\big)\Big)$ with Adam
+	    \ENDFOR
+	    \STATE Update $\mathcal{X}_{cnd}$ using Eq.(7) % the candidate pool refreshes each round because the PU boundary moves
+	    \STATE Update $\widetilde{\Theta}$ by $\Theta$ with the move-average
+	    \hfill $\triangleright$ Optional for P$^3$Mix-E
+	    \ENDFOR
+		\RETURN $\Theta$
+	\end{algorithmic}
+\end{algorithm}
+% C. Li, X. Li, L. Feng, J. Ouyang, ICLR 2022,
+% "Who is your right mixup partner in positive and unlabeled learning".
+% Transcribed line by line from Algorithm 1 of the original, including the optional lines of the three variants.
+% Motivation: the paper observes a directional boundary shift, in which the learned PU boundary sits systematically on
+% the positive side of the fully supervised one. Method: for an ambiguous unlabeled instance, choose a mixup partner
+% among the positives near the learned PU boundary, turning it into an augmented instance that lies near the boundary
+% and carries a more accurate supervision signal, which pushes the boundary back. The variants differ only in the
+% optional lines: P3Mix omits lines 7, 9 and 13 with eta = 0; P3Mix-C includes line 7, relabelling unlabeled instances
+% with f(x) > gamma as positive, with eta = 0; and P3Mix-E includes lines 9 and 13, the mean teacher and the
+% early-learning regularizer R_elr, with eta > 0. The explicit forms of equations (4) to (7) are in the original:
+% (4) builds the augmented instance, (5) selects the mixup partner, (6) estimates marginal pseudo-negatives and
+% (7) updates the candidate pool.
+\end{document}

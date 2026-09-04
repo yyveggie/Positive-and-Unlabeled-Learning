@@ -1,0 +1,25 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{RESVM} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;n_{models}=$ number of base models to include in the ensemble;  $n_{unl}=$ size of bootstrap resamples of $U$;$n_{pos}=$ size of bootstrap resamples of $P$;$C_{U}=$ misclassification penalty for $U$ in class-weighted SVM;$w_{pos}=$ relative positive misclassification penalty coefficient
+        \ENSURE
+	    Classifier $f:$ RESVM with $n_{models}$ base models \\
+	    \STATE $f\leftarrow \emptyset$
+	    \STATE $C_P\leftarrow C_U*W_{pos}*\frac{n_{unl}}{pos}$
+	    \FOR{$i\leftarrow 1$ to $n_{models}$}
+	    \STATE $P_i\leftarrow$sample $n_{pos}$ instances from $P$ with replacement
+	    \STATE $U_i\leftarrow$sample $n_{unl}$ instances from $U$ with replacement
+	    \STATE $f_i\leftarrow$Generate a classifier CWSVM$(P_i,U_i,C_P,C_U,k)$
+	    \STATE $f\leftarrow f_i\cup f$
+	    \ENDFOR
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

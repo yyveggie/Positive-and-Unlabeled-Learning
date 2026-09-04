@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PAN (predictive adversarial networks, class-prior free)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $X^{p}$ (labeled positives); $X^{u}$ (unlabeled); $X^{pu}=X^{p}\cup X^{u}$ with $n$ examples,
+	    $n_{u}=|X^{u}|$; classifier $C$; discriminator $D$; balance weight $\lambda$
+	    \ENSURE
+	    PU classifier $C$
+	    \STATE \textbf{Note:} $C$ replaces GAN's generator; there is no generator, so PAN applies to any data type % nothing is generated, so text and tabular data are equally usable
+	    \STATE For instance $i$, let $C_{i},D_{i}\in[0,1]$ be read as binary distributions
+	    $(\,p_{+}=C_{i},\ p_{-}=1-C_{i}\,)$; write $\tilde{C}_{i}^{u}=1-C_{i}^{u}$
+	    \STATE \textbf{Objective} (unlabeled data are treated as negative in term I):
+	    \STATE \quad $\min_{C}\max_{D}\ V(D,C)=
+	    \underbrace{-\sum_{i=1}^{n}\mathrm{KL}\!\left(P_{i}^{pu}\,\|\,D_{i}^{pu}\right)}_{\text{I}}
+	    +\lambda\Big(\underbrace{\sum_{i=1}^{n_{u}}\mathrm{KL}\!\left(D_{i}^{u}\,\|\,C_{i}^{u}\right)}_{\text{II}}
+	    -\underbrace{\sum_{i=1}^{n_{u}}\mathrm{KL}\!\left(D_{i}^{u}\,\|\,\tilde{C}_{i}^{u}\right)}_{\text{III}}\Big)$
+	    \STATE \quad I keeps $D$ faithful to the given PU labels;
+	    II pushes $C$ towards $D$ on $U$; III pushes $D$ away from $C$ on $U$ % C tries to fool D and D tries to score the opposite way; the contest is over predicted distributions, not samples
+	    \WHILE{stopping criterion is not met}
+	    \STATE \textbf{Discriminator step:} update $D$ by ascending $\nabla_{D}V(D,C)$ % D is also held by the supervision in I, so it does not degenerate
+	    \STATE \textbf{Classifier step:} update $C$ by descending $\nabla_{C}V(D,C)$ % C is driven only by II, bringing its predictions close to those of D on U
+	    \STATE \emph{(all of $U$ participates in every step; no sampling)}
+	    \ENDWHILE
+		\RETURN $C$
+	\end{algorithmic}
+\end{algorithm}
+% Hu et al., AAAI 2021, "Predictive Adversarial Learning from Positive and Unlabeled Data"
+% (AAAI-21, 35(9):7806-7814). The original has no numbered algorithm block; compiled from Section 4 and equation (3).
+% Difference from applying a GAN directly, which the paper calls a-GAN: a-GAN attends only to positive data, learning
+% is unbalanced, and the result is high precision with low recall. PAN changes the contest from telling real samples
+% from fake ones to comparing the KL distance between two predicted distributions, and lets unlabeled data serve as
+% the negative class in term I, which balances the two sides. The prior-free property follows: the objective involves
+% only the KL distance between the output distributions of C and D, and pi never appears. With no generator, PAN
+% applies directly to data that is hard to generate, such as text.
+\end{document}

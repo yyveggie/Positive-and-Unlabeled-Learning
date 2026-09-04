@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Dist-PU (label distribution alignment for PU learning)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\pi=$ class prior; model $g_{\theta}$; warm-up epochs $T_{w}$; PU epochs $T_{p}$;
+	    Mixup parameter $\alpha$; weights $\lambda_{\mathrm{ent}},\lambda_{\mathrm{mix\text{-}ent}},\lambda_{\mathrm{mix}}$
+	    \ENSURE
+	    Classifier $g_{\theta}$
+	    \STATE \textbf{Stage 1: warm-up by label-distribution alignment}
+	    \FOR{$t=1$ \TO $T_{w}$}
+	    \STATE Sample a mini-batch $B\subset P\cup U$; $s\leftarrow \sigma(g_{\theta}(B))$ % map the predicted scores into [0,1]
+	    \STATE $h_{P}\leftarrow \mathrm{SoftHist}(s_{P})$, $h_{U}\leftarrow \mathrm{SoftHist}(s_{U})$ % differentiable histogram, a soft binning of the scores
+	    \STATE $\mathcal{L}_{\mathrm{dist}}\leftarrow \left\|h_{P}-\delta_{1}\right\|_{1}+\tfrac{1}{2\pi}\left\|h_{U}-\left(\pi\delta_{1}+(1-\pi)\delta_{0}\right)\right\|_{1}$ % scores on P should pile up at 1, and the score distribution on U should be the prior mixture
+	    \STATE $\theta\leftarrow \theta-\eta\nabla_{\theta}\mathcal{L}_{\mathrm{dist}}$
+	    \ENDFOR
+	    \STATE Initialize pseudo-labels $\tilde{y}_{i}\leftarrow \sigma(g_{\theta}(x_{i}))$ for all $x_{i}\in P\cup U$
+	    \STATE \textbf{Stage 2: entropy minimization with Mixup}
+	    \FOR{$t=1$ \TO $T_{p}$}
+	    \STATE $\lambda_{\mathrm{ent}}^{(t)}\leftarrow \left(1-\cos\left(\tfrac{t}{T_{p}}\cdot\tfrac{\pi}{2}\right)\right)\lambda_{\mathrm{ent}}$ % the entropy weight rises on a cosine schedule, so early mistakes are not frozen in
+	    \FORALL{mini-batches $B$}
+	    \STATE $\tilde{y}_{i}\leftarrow 1$ for every $x_{i}\in B\cap P$ % pseudo-labels of confirmed positives are pinned to 1
+	    \STATE Draw $\lambda\sim \mathrm{Beta}(\alpha,\alpha)$; form $\tilde{x}=\lambda x_{a}+(1-\lambda)x_{b}$ with targets $\tilde{y}_{a},\tilde{y}_{b}$
+	    \STATE $s\leftarrow \sigma(g_{\theta}(B))$, $\tilde{s}\leftarrow \sigma(g_{\theta}(\tilde{x}))$
+	    \STATE $\mathcal{L}\leftarrow \mathcal{L}_{\mathrm{dist}}(s)+\lambda_{\mathrm{ent}}^{(t)}H(s_{U})+\lambda_{\mathrm{mix\text{-}ent}}H(\tilde{s})+\lambda_{\mathrm{mix}}\,\mathrm{BCE}_{\mathrm{mix}}(\tilde{s},\tilde{y}_{a},\tilde{y}_{b},\lambda)$
+	    \STATE $\theta\leftarrow \theta-\eta\nabla_{\theta}\mathcal{L}$
+	    \STATE $\tilde{y}_{i}\leftarrow s_{i}$ for $x_{i}\in B$ % refresh the pseudo-labels with the current predictions
+	    \ENDFOR
+	    \ENDFOR
+		\RETURN $g_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% Zhao et al., CVPR 2022. Instead of an unbiased or non-negative correction to the risk, it constrains the distribution
+% of predicted scores on U to equal the mixture implied by the prior. Entropy minimization pushes scores away from the
+% decision boundary and Mixup imposes linear interpolation consistency. H(s) = -mean(s log s + (1-s) log(1-s)). The
+% pseudocode follows the released implementation (losses/distributionLoss.py, losses/entropyMinimization.py, train.py).
+\end{document}

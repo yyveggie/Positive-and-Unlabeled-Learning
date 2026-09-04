@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{VPU (variational PU learning, class-prior free)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$; model $\log\Phi_{\theta}$ outputting $\log\Phi(x)\in(-\infty,0]$;
+	    Mixup parameter $\alpha$; regularization weight $\lambda$; optimizer with learning rate $\eta$
+	    \ENSURE
+	    Classifier $\Phi_{\theta}$ (no class prior required at any point)
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample mini-batches $P_{b}\subset P$ and $U_{b}\subset U$
+	    \STATE $\ell_{p}\leftarrow \log\Phi_{\theta}(P_{b})$,\quad $\ell_{u}\leftarrow \log\Phi_{\theta}(U_{b})$
+	    \STATE $\mathcal{L}_{\mathrm{var}}\leftarrow \log\!\left(\sum_{x\in U_{b}}e^{\ell_{u}(x)}\right)-\log|U_{b}|-\dfrac{1}{|P_{b}|}\sum_{x\in P_{b}}\ell_{p}(x)$ % the variational loss log E_U[Phi] - E_P[log Phi] uses only P and U and contains no pi
+	    \STATE \textbf{Mixup regularization}
+	    \STATE \quad $\tilde{y}_{u}\leftarrow \exp(\ell_{u})$;\quad $\tilde{y}_{p}\leftarrow \mathbf{1}$ % the target on U is the current prediction; on P it is always 1
+	    \STATE \quad Permute $P_{b}$ to $P_{b}^{\pi}$; draw $\lambda_{m}\sim \mathrm{Beta}(\alpha,\alpha)$
+	    \STATE \quad $\tilde{x}\leftarrow \lambda_{m}U_{b}+(1-\lambda_{m})P_{b}^{\pi}$,\quad
+	    $\tilde{y}\leftarrow \lambda_{m}\tilde{y}_{u}+(1-\lambda_{m})\tilde{y}_{p}$
+	    \STATE \quad $\mathcal{L}_{\mathrm{reg}}\leftarrow \dfrac{1}{|\tilde{x}|}\sum\left(\log\tilde{y}-\log\Phi_{\theta}(\tilde{x})\right)^{2}$ % consistency in the log domain, which suppresses the degenerate solution of the variational loss
+	    \STATE $\mathcal{L}\leftarrow \mathcal{L}_{\mathrm{var}}+\lambda\,\mathcal{L}_{\mathrm{reg}}$
+	    \STATE $\theta\leftarrow \theta-\eta\nabla_{\theta}\mathcal{L}$
+	    \ENDWHILE
+		\RETURN $\Phi_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% H. Chen et al., NeurIPS 2020, "A Variational Approach for Learning from Positive and
+% Unlabeled Data". The pseudocode follows the released implementation (the train step of vpu.py).
+% Where the prior-free property comes from: the variational loss log E_U[Phi(x)] - E_P[log Phi(x)] measures the gap
+% between the model and the Bayes classifier, and its minimizer does not depend on pi, so pi is never estimated or supplied.
+% The cost is that the loss alone admits a degenerate solution, so a Mixup regularizer is required: interpolating
+% between U and P and requiring log Phi to be linear at the interpolated points constrains the shape of the solution.
+% Implementation note: log-sum-exp minus log|U_b| is the log mean, which is more stable than exponentiating first.
+\end{document}

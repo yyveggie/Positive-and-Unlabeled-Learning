@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PUL-CPBF (controlled probability boundary fence)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $D_{l}$ (labeled positives, $n_{l}$); $D_{u}$ (unlabeled, $n_{u}$);
+	    class prior $\pi$; labeled positive proportion $\hat{\pi}$;
+	    boundary grid $\alpha_{1}<\dots<\alpha_{m}$; pre-trained backbone $\Theta$;
+	    smoothing $\eta$; temperature $T$
+	    \ENSURE
+	    Strong classifier $f^{s}$
+	    \STATE \textbf{Stage 1: build the probability boundary fence}
+	    \STATE Freeze $\Theta$; attach one classification head $W_{j}$ per $\alpha_{j}$ % the backbone is shared and only linear heads are trained, so a weak classifier is cheap
+	    \FOR{$j=1$ \TO $m$}
+	    \STATE $\beta_{j}\leftarrow \dfrac{\alpha_{j}\hat{\pi}}{\pi(1-\hat{\pi})+\alpha_{j}\hat{\pi}}$ % inverted from Theorem 2.1: the asymmetric penalty beta fixes the probability boundary alpha of the Bayes classifier
+	    \STATE Optimise $W_{j}$ by minimising the asymmetric disambiguation-free empirical risk
+	    \STATE \quad $L_{\beta_{j}}=\dfrac{(1-\beta_{j})\hat{\pi}}{n_{l}}\sum_{i}\ell_{\log}(f_{\alpha_{j}}(x_{i}^{p}))
+	    +\dfrac{\beta_{j}(1-\hat{\pi})}{n_{u}}\sum_{i}\ell_{\log}(-f_{\alpha_{j}}(x_{i}^{u}))$ % the unlabeled set is taken wholly as negative, with no disambiguation
+	    \ENDFOR
+	    \STATE \textbf{Stage 2: locate each unlabeled instance and draw a stochastic label}
+	    \FORALL{$x_{i}^{u}\in D_{u}$}
+	    \STATE $(p_{i}^{l},p_{i}^{r})\leftarrow (\alpha_{j},\alpha_{j+1})$ if $f_{\alpha_{j}}^{\ast}(x_{i}^{u})=+1$ and $f_{\alpha_{j+1}}^{\ast}(x_{i}^{u})=-1$;
+	    $(\alpha_{m},1)$ if $f_{\alpha_{m}}^{\ast}(x_{i}^{u})=+1$ % a flip between two adjacent boundaries places the posterior inside that cell
+	    \STATE Draw $y_{i}^{s}\sim \mathrm{Uniform}(p_{i}^{l},p_{i}^{r})$
+	    \ENDFOR
+	    \STATE $\hat{D}_{u}\leftarrow \{(x_{i}^{u},y_{i}^{s})\}_{i=1}^{n_{u}}$
+	    \STATE \textbf{Stage 3: self-training with stochastic labels}
+	    \WHILE{stopping criterion is not met}
+	    \STATE Minimise $L=\dfrac{1}{n_{l}}\sum_{i}\ell_{ce}(f^{s}(x_{i}^{p}),+1)
+	    +\dfrac{1}{n_{u}}\sum_{i}\ell_{ce}(f^{s}(x_{i}^{u}),y_{i}^{s})+R$ over $\{\Theta,W\}$ % R is a consistency regularizer with data augmentation
+	    \STATE $q_{i}\leftarrow \dfrac{(f^{s}(x_{i}^{u}))^{T}}{(f^{s}(x_{i}^{u}))^{T}+(1-f^{s}(x_{i}^{u}))^{T}}$;\quad
+	    $y_{i}^{s}\leftarrow (1-\eta)y_{i}^{s}+\eta q_{i}$ % random labels are imprecise, so the sharpened current prediction corrects them gradually
+	    \ENDWHILE
+		\RETURN $f^{s}$
+	\end{algorithmic}
+\end{algorithm}
+% C. Li et al., ICML 2024, "Positive and Unlabeled Learning with Controlled Probability
+% Boundary Fence". The original has no numbered algorithm block; compiled from Section 2.2 (Theorem 2.1), Sections 3.2
+% and 3.3, and equations (10), (13) and (14).
+% Central result: the Bayes-optimal classifier of the asymmetric disambiguation-free risk (equation 4) is
+% sign[p(y=+1|x) - alpha] with alpha = beta*pi*(1-pi_hat) / ((1-beta)*pi_hat). Tuning beta therefore controls the
+% probability boundary exactly, and weak classifiers trained at a range of beta form a boundary fence that brackets
+% the posterior of every unlabeled instance inside one cell.
+\end{document}

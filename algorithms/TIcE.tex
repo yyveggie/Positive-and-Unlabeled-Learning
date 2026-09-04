@@ -1,0 +1,26 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{TIcE (Tree Induction for c Estimation)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    PU dataset $\{(x_i,s_i)\}$; confidence $\delta$; max tree depth $d$
+	    \ENSURE
+	    Label frequency estimate $\hat{c}$ (then $\hat{\alpha}=\Pr(s=1)/\hat{c}$)
+	    \STATE Split the data into a tree-induction fold $F_1$ and an estimation fold $F_2$ % prevents the bias of choosing the subdomain and estimating on the same data
+	    \STATE Induce a shallow decision tree (depth $\leq d$) on $F_1$: greedily choose splits leading to subdomains with a high fraction of labeled examples % under the anchor-set assumption, the subdomain with the highest labeled fraction gives the tightest lower bound on c
+	    \FOR{each subdomain (node) $A$ of the tree}
+	    \STATE $T_A\leftarrow$ number of examples of $F_2$ in $A$; $L_A\leftarrow$ number of labeled examples of $F_2$ in $A$
+	    \STATE $\hat{c}_{lb}(A)\leftarrow \frac{L_A}{T_A}-\sqrt{\frac{\ln(1/\delta)}{2T_A}}$ % a one-sided concentration lower bound
+	    \ENDFOR
+	    \STATE $\hat{c}\leftarrow \max_{A}\hat{c}_{lb}(A)$
+		\RETURN $\hat{c}$
+	\end{algorithmic}
+\end{algorithm}
+% Bekker and Davis, AAAI 2018. The anchor-set assumption: a subdomain exists in which every instance is positive, so
+% the labeled fraction there is the label frequency c. Decision-tree induction searches for the subdomain maximizing that bound.
+\end{document}

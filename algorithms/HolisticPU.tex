@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{HolisticPU (prediction-trend labeling, class-prior free)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$; model $f_{\theta}$; warm-up epochs $T_{1}$; main epochs $T_{2}$;
+	    unlabeled-loss weights $\lambda_{u},\lambda_{n}$
+	    \ENSURE
+	    Classifier $f_{\theta}$ (no class prior and no threshold to tune)
+	    \STATE \textbf{Phase 1: record the whole prediction trajectory}
+	    \FOR{$t=1$ \TO $T_{1}$}
+	    \STATE Train $f_{\theta}$ for one epoch treating $P$ as positive and $U$ as negative % the initial objective is deliberately biased; what matters is not its classification output
+	    \STATE $s_{i}^{(t)}\leftarrow \mathrm{softmax}(f_{\theta}(x_{i}))_{+}$ for every $x_{i}\in U$; append to the sequence % record the score of every unlabeled instance across the whole of training
+	    \ENDFOR
+	    \STATE \textbf{Phase 2: score each sequence by its trend}
+	    \FORALL{$x_{i}\in U$}
+	    \STATE $d_{i}^{(t)}\leftarrow s_{i}^{(t)}-s_{i}^{(t-1)}$ for $t=2,\dots,T_{1}$ % first difference
+	    \STATE $\tau_{i}\leftarrow \dfrac{1}{T_{1}-1}\sum_{t}\log\!\left(1+d_{i}^{(t)}+\tfrac{1}{2}\big(d_{i}^{(t)}\big)^{2}\right)$ % trend statistic: the mean of a second-order Taylor log transform of the differences
+	    \ENDFOR
+	    \STATE \textbf{Phase 3: split the trend values, no threshold needed}
+	    \STATE $b\leftarrow$ the single break point of a two-class Fisher--Jenks partition of $\{\tau_{i}\}$ % a one-dimensional clustering fixes the split, so neither a prior nor a tuned threshold is needed
+	    \STATE $\tilde{y}_{i}\leftarrow +1$ if $\tau_{i}>b$, else $\tilde{y}_{i}\leftarrow -1$, for every $x_{i}\in U$ % instances whose score rises steadily are judged latent positives
+	    \STATE \textbf{Phase 4: retrain with the pseudo-labeled pool}
+	    \FOR{$t=1$ \TO $T_{2}$}
+	    \STATE Minimise $\mathcal{L}=\mathcal{L}_{P}
+	    +\lambda_{u}\mathcal{L}_{U}^{+}(\tilde{y}=+1)
+	    +\lambda_{n}\mathcal{L}_{U}^{-}(\tilde{y}=-1)$ over mini-batches
+	    \ENDFOR
+		\RETURN $f_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% X. Wang et al., NeurIPS 2023, "Beyond Myopia: Learning from Positive and Unlabeled Data
+% through Holistic Predictive Trends". The pseudocode follows the released implementation (the trend computation and
+% jenkspy split in creditcard.py, the two-stage training in main.py).
+% Central observation: when U is trained as negative, true positives and true negatives differ in how their predicted
+% scores move across epochs. The former are pulled upward by P while the latter keep falling. A single epoch's score,
+% the myopia the title refers to, cannot separate them, but the trend of the whole sequence can.
+% Where the prior-free property comes from: the split point is fixed automatically by a two-class Fisher-Jenks
+% partition of the trend values, needing neither pi nor a hand-set threshold.
+% Implementation note: the original depends on the jenkspy package; this project replaces it with an exact two-class scan.
+\end{document}

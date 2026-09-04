@@ -1,0 +1,28 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{LUHC (Laplacian Unit-Hyperplane Classifier)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\nu\in(0,1]=$ upper bound on the fraction of positive margin errors; trade-off parameters $c_1,c_2$; graph parameters ($k$ nearest neighbors, bandwidth $\sigma$)
+	    \ENSURE
+	    Classifier $f$
+	    \STATE $X\leftarrow P\cup U$
+	    \STATE Build a $k$-NN similarity graph on $X$ with weight matrix $W$ ($W_{ij}=\exp(-\|x_i-x_j\|^2/\sigma^2)$ for neighbors, else 0)
+	    \STATE $D\leftarrow \operatorname{diag}(\textstyle\sum_j W_{ij})$;\ $L\leftarrow D-W$ % graph Laplacian
+	    \STATE Formulate the QPP for a decision unit-hyperplane $f(x)=w^{T}x+b$ with $\|w\|=1$: % a unit hyperplane, so f(x) is the signed distance
+	    \STATE \quad maximize the margin $\rho$ by which positive examples lie on the positive side, with slack variables $\xi_i\geq 0$ on $P$ whose total fraction is bounded by $\nu$
+	    \STATE \quad regularize with the manifold term $c_1\, \boldsymbol{f}^{T}L\boldsymbol{f}$, where $\boldsymbol{f}=(f(x_1),\dots,f(x_{|X|}))^{T}$ % geometric information: the decision values vary smoothly over the graph
+	    \STATE \quad penalize with $c_2\sum_{x_j\in U} f(x_j)$ to push the unlabeled mass to the negative side % discriminative information: the unlabeled mass is pushed negative
+	    \STATE Solve the dual QPP, whose size depends only on $|P|$ % a small QPP, so training is fast
+	    \STATE $f(x)\leftarrow \operatorname{sign}(w^{T}x+b)$
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+% Shao et al., Information Sciences 314:152-168, 2015.
+% The objective and its dual derivation are given in the original; this pseudocode records the structure only.
+\end{document}

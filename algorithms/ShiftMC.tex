@@ -1,0 +1,52 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{ShiftMC: PU matrix completion by shifting the observed matrix}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Binary matrix $A\in\{0,1\}^{m\times n}$ with positive-only observations;
+	    fraction $\rho\in[0,1)$ of positives that went unobserved;
+	    rank $k$; regulariser $\lambda$
+	    \ENSURE
+	    Recovered matrix $\hat{M}=WH^{\top}$
+	    \STATE \textbf{Setting:} a zero entry means \emph{unobserved}, not negative --- one-sided
+	    label noise with rate $\rho$ % the PU structure in matrix completion: a 0 means unrecorded, not disliked
+	    \STATE \textbf{Shift:} $\tilde{A}_{ij}\leftarrow \dfrac{1}{1-\rho}$ if $A_{ij}=1$,
+	    else $\tilde{A}_{ij}\leftarrow 0$ % observed ones are inflated by 1/(1-rho) to offset the expectation shift caused by missed observations
+	    \STATE \textbf{Relaxed nonconvex form} (the box-constrained convex program is costly at scale):
+	    \STATE \quad $\min_{W,H}\ \|\tilde{A}-WH^{\top}\|_{F}^{2}
+	    +\dfrac{\lambda}{2}\left(\|W\|_{F}^{2}+\|H\|_{F}^{2}\right)$
+	    \ \ s.t. $0\leq W,H\leq\sqrt{1/k}$ % the box constraint keeps the entries of WH^T in [0,1], consistent with a probability reading
+	    \STATE Initialise $W\in\mathbb{R}^{m\times k}$, $H\in\mathbb{R}^{n\times k}$ within the box
+	    \FOR{$t=1$ \TO $T_{\max}$}
+	    \FORALL{rows $i$}
+	    \STATE $\Omega_{i}\leftarrow\{j\mid A_{ij}=1\}$;\quad
+	    $w_{i}\leftarrow \left(\dfrac{1}{1-\rho}\sum_{j\in\Omega_{i}}h_{j}\right)
+	    \left[H^{\top}H+\tfrac{\lambda}{2}I\right]^{-1}$ % only the observed ones are traversed, so the cost scales with the number of non-zeros
+	    \STATE Project $w_{i}$ onto $[0,\sqrt{1/k}]$
+	    \ENDFOR
+	    \FORALL{rows $j$}
+	    \STATE $\Omega_{j}'\leftarrow\{i\mid A_{ij}=1\}$;\quad
+	    $h_{j}\leftarrow \left(\dfrac{1}{1-\rho}\sum_{i\in\Omega_{j}'}w_{i}\right)
+	    \left[W^{\top}W+\tfrac{\lambda}{2}I\right]^{-1}$;\quad project onto the box
+	    \ENDFOR
+	    \ENDFOR
+		\RETURN $\hat{M}=WH^{\top}$;\quad predict $\hat{Y}_{ij}=\mathbb{I}(\hat{M}_{ij}>q)$
+	\end{algorithmic}
+\end{algorithm}
+% Hsieh, Natarajan, Dhillon, ICML 2015, "PU Learning for Matrix Completion".
+% Two observation assumptions, two methods:
+% (1) non-deterministic setting, ShiftMC (this algorithm): shift the observed matrix numerically by 1/(1-rho), which
+%     corrects the asymmetric label noise produced by one-sided sampling directly;
+% (2) deterministic setting, BiasMC: apply different loss weights alpha to observed ones and unobserved zeros, with
+%     the theoretically optimal alpha* = (1 + rho)/2 given in the original.
+% Both have a convex form (nuclear norm with SVT) and a non-convex low-rank factorization. The latter uses alternating
+% least squares, where each row update inverts one k x k matrix and traverses only that row's observed positives,
+% which scales to millions of rows and columns. Inductive extension: when rows and columns carry features F_u and F_v,
+% the matrix is modelled as F_u D F_v^T and D is recovered, giving ShiftIMC and BiasIMC.
+% Note: Figure 2 of the survey uses ShiftMC as the primary name for this record, one name per paper.
+\end{document}

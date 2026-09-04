@@ -1,0 +1,25 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{uPU (unbiased PU learning)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\pi=$ class prior; loss $\ell$; hypothesis space $\mathcal{G}$; regularizer $\mathcal{R}$ with weight $\lambda$
+	    \ENSURE
+	    Classifier $g$
+	    \STATE $\hat{R}_{P}^{+}(g)\leftarrow \frac{1}{|P|}\sum_{x_i\in P}\ell(g(x_i))$ % positive-class empirical risk
+	    \STATE $\hat{R}_{P}^{-}(g)\leftarrow \frac{1}{|P|}\sum_{x_i\in P}\ell(-g(x_i))$
+	    \STATE $\hat{R}_{U}^{-}(g)\leftarrow \frac{1}{|U|}\sum_{x_j\in U}\ell(-g(x_j))$
+	    \STATE Form the unbiased risk estimator: % the risk of U as negative, minus the bias term contributed by the positives mixed into it
+	    \STATE $\hat{R}_{pu}(g)\leftarrow \pi \hat{R}_{P}^{+}(g)-\pi \hat{R}_{P}^{-}(g)+\hat{R}_{U}^{-}(g)$
+	    \STATE $g\leftarrow \underset{g\in \mathcal{G}}{\arg\min}\ \hat{R}_{pu}(g)+\lambda \mathcal{R}(g)$
+		\RETURN $g$
+	\end{algorithmic}
+\end{algorithm}
+% du Plessis et al., NeurIPS 2014: requires a loss satisfying the symmetry condition l(z)+l(-z)=1, such as the
+% non-convex ramp loss. du Plessis et al., ICML 2015: a convex form admitting general losses, with E[R_pu] = R (unbiased).
+\end{document}

@@ -1,0 +1,50 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PURE: positive-unlabeled recommendation with a generative adversarial network}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Generators $G_{u},G_{i}$; discriminator $D$; user--item interaction matrix $\mathcal{R}$;
+	    user set $\mathcal{U}$; item set $\mathcal{I}$; positive class prior $\pi_{p}$
+	    \ENSURE
+	    The trained $G_{u}$, $G_{i}$ and $D$
+	    \STATE Assign $G_{u},G_{i}$ random weights; assign $D$ random or pre-trained weights;
+	    $n_{p}=|\Omega|$,\quad $n_{u}=\mathrm{ceil}\!\left(\dfrac{n_{p}}{(1-2\pi_{p})^{2}}\right)$ % the unlabeled sample size follows from the prior
+	    \REPEAT
+	    \FOR{discriminator-steps}
+	    \STATE Sample first $n_{p}$ tuples $(u,i)\in\Omega$ with label $1$
+	    \STATE Sample another $n_{p}$ tuples $(u,i)\in\Omega$ with label $0$ % the same observed positives enter the objective under both labels, which is the PU risk correction
+	    \STATE Sample $n_{u}$ tuples $(u,i)\in\Omega^{-}$ with label $0$
+	    \STATE Generate $n_{u}$ tuples $(u,i')$ and $(u',i)$ with label $0$ using Eq.~(13)
+	    \STATE Update $D$ by ascending its gradients in the objectives of Eq.~(10) and Eq.~(11):
+	    \STATE \quad $V(D)_{1}=\sum_{(u,i)\in\Omega}\pi_{p}\log D(u,i)-\pi_{p}\log\!\left(1-D(u,i)\right)$
+	    \STATE \quad $V(D)_{2}=\sum_{(u,i)\in\Omega^{-}}\log\!\left(1-D(u,i)\right)
+	    +\left[\log\!\left(1-D(u,i')\right)+\log\!\left(1-D(u',i)\right)\right]$
+	    \ENDFOR
+	    \FOR{generator-steps}
+	    \STATE Generate $n_{u}$ random noise $z_{u},z_{i}\sim\mathcal{N}(\mathbf{0},\delta I)$ (Eq.~12)
+	    \STATE Sample $n_{u}$ tuples $(u,i)\in\Omega^{-}$ with label $1$
+	    \STATE Replace $(u,i)$ with $(u,i')$ and $(u',i)$ using $G_{u}(z_{u})$, $G_{i}(z_{i})$ (Eq.~13,
+	    a two-layer ReLU MLP) % the generated users and items are virtual and need not exist in I
+	    \STATE Update $G_{u},G_{i}$ by descending their gradients in the objective of Eq.~(11)
+	    \ENDFOR
+	    \UNTIL{convergence}
+		\RETURN $G_{u}$, $G_{i}$, $D$
+	\end{algorithmic}
+\end{algorithm}
+% Zhou, Xu, Wu, Wang, He, KDD 2021, "PURE: Positive-Unlabeled Recommendation with
+% Generative Adversarial Network". Transcribed line by line from Algorithm 1 and equations (10) to (14).
+% Setting: implicit-feedback recommendation is naturally PU. An item a user clicked is a positive, and one not clicked
+% is merely unobserved, not disliked. The PU correction sits at lines 4 and 5 and equation (10): the observed
+% positives Omega enter both with label 1 and, weighted by pi_p, with label 0. The second term is the empirical risk
+% of the positives against the negative label, and it cancels the bias from treating every unobserved item as negative.
+% The generator differs in role from PGAN: it produces virtual users u' and items i', which need not exist in I, as
+% additional unlabeled samples for the discriminator objective, not as substitutes for negatives. The unbiasedness of
+% the PU risk is therefore guaranteed by the prior weighting of equation (10) and is decoupled from generation quality.
+% The unlabeled sample size n_u = ceil(n_p / (1-2 pi_p)^2) follows directly from the class prior. The original fixes
+% the ratio of generated to sampled unlabeled instances at 1 and notes that tuning it may improve results further.
+\end{document}

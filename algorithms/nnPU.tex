@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{nnPU (non-negative PU learning)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\pi=$ class prior; loss $\ell$; model $g_{\theta}$; SGD-like optimizer with learning rate $\eta$; $\beta\geq 0$; $\gamma\in(0,1]$
+	    \ENSURE
+	    Classifier $g_{\theta}$
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample mini-batches $P_b\subset P$ and $U_b\subset U$
+	    \STATE $\hat{R}_{P}^{+}\leftarrow \frac{1}{|P_b|}\sum_{x_i\in P_b}\ell(g_{\theta}(x_i))$
+	    \STATE $\hat{R}_{P}^{-}\leftarrow \frac{1}{|P_b|}\sum_{x_i\in P_b}\ell(-g_{\theta}(x_i))$
+	    \STATE $\hat{R}_{U}^{-}\leftarrow \frac{1}{|U_b|}\sum_{x_j\in U_b}\ell(-g_{\theta}(x_j))$
+	    \STATE $\hat{r}\leftarrow \hat{R}_{U}^{-}-\pi \hat{R}_{P}^{-}$ % the estimated negative risk, non-negative in theory
+	    \IF{$\hat{r}\geq -\beta$}
+	    \STATE $\theta\leftarrow \theta-\eta \nabla_{\theta}\left(\pi \hat{R}_{P}^{+}+\hat{r}\right)$ % ordinary step: minimize the non-negative risk
+	    \ELSE
+	    \STATE $\theta\leftarrow \theta+\eta\gamma \nabla_{\theta}\,\hat{r}$ % overfitting step: a negative risk signals overfitting, so the step moves back along its gradient
+	    \ENDIF
+	    \ENDWHILE
+		\RETURN $g_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% Kiryo et al., NeurIPS 2017. The risk estimator is truncated non-negatively as max(0, R_U^- - pi R_P^-), which fixes
+% the tendency of uPU to drive the empirical risk negative under deep networks. The common baseline for deep PU methods.
+\end{document}

@@ -1,0 +1,39 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{Pulce$(P,U)$: PU learning in categorical data}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    $P$: positive set;\quad $U$: unlabeled set (categorical attributes)
+	    \ENSURE
+	    Distance models $\mathcal{M}_{P}$, $\mathcal{M}_{RN}$ and the reliable negative set $RN$
+	    \STATE $\mathcal{M}_{P}\leftarrow DILCA(P)$ % DILCA learns a distance measure for categorical attributes from the positives
+	    \STATE $\tau\leftarrow \dfrac{2}{|P|(|P|-1)}\sum_{i=1}^{|P|-1}\sum_{j=i+1}^{|P|}
+	    dist(\mathcal{M}_{P},p_{i},p_{j})$ % the threshold is the mean pairwise distance among positives, so nothing is set by hand
+	    \STATE $RN\leftarrow \{\emptyset\}$
+	    \FORALL{$u\in U$}
+	    \IF{$score(u,P,\mathcal{M}_{P})>\tau$}
+	    \STATE $RN\leftarrow RN\cup u$ % an instance further from the positive class than its own internal mean distance is a reliable negative
+	    \ENDIF
+	    \ENDFOR
+	    \STATE $\mathcal{M}_{RN}\leftarrow DILCA(RN)$ % a second distance model is learned for the reliable negative set
+		\RETURN $\mathcal{M}_{P}$, $\mathcal{M}_{RN}$, $RN$
+	\end{algorithmic}
+\end{algorithm}
+% Ienco \& Pensa, Neurocomputing 2016, "Positive and Unlabeled Learning in Categorical
+% Data". Transcribed line by line from Algorithm 1 of the original.
+% Problem addressed: most two-step methods rely on Euclidean distance or cosine similarity, but categorical attributes
+% have no natural numerical representation and applying those measures directly distorts them. Pulce uses DILCA
+% (DIstance Learning for Categorical Attributes) to learn inter-attribute distances from the data itself.
+% Two design points:
+% (1) the threshold tau is not a hyperparameter but the mean pairwise distance inside the positive set, so the
+%     criterion asks whether an unlabeled instance lies further from the positives than their own dispersion;
+% (2) two distance models are produced, M_P from the positive set and M_RN from the reliable negative set. Both are
+%     used in the later classification stage, since the two classes may have different distance structure over
+%     categorical attributes. Position within branch A: what it replaces is the layer measuring distance between
+%     instances, not the selection strategy, which remains far enough from the positive class.
+\end{document}

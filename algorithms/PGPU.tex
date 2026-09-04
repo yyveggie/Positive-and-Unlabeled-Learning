@@ -1,0 +1,28 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PGPU} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;C_+;C_-$
+	    \ENSURE
+	    Classifier $f$
+	    \STATE Assigned the label $s=1$ to each sample in $P$
+	    \STATE Assigned the label $s=0$ to each sample in $U$
+	    \STATE $\hat{g}(x)\leftarrow$ Estimate the non-traditional posterior $\Pr(s=1|x)$ from $(P,U)$ % for instance by kernel density estimation or a probabilistic classifier
+	    \STATE $\tilde{\Delta}\Pr(x)\leftarrow 2\hat{g}(x)-1$ for all $x\in P\cup U$ % the observed probability gap
+	    \STATE $\omega\leftarrow \min_{x\in P}\tilde{\Delta}\Pr(x)$ % the smallest observed gap among the labeled positives
+	    \STATE $RP\leftarrow \{x\in U: \tilde{\Delta}\Pr(x)>0\}$ % a positive observed gap implies a positive true gap, hence a reliable positive
+	    \STATE $RN\leftarrow \{x\in U: \tilde{\Delta}\Pr(x)<\omega\}$ % a gap below that of any positive implies a reliable negative
+	    \STATE $f\leftarrow$ Generate a biased SVM classifier$(P\cup RP,RN,C_+,C_-)$
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+% He et al., 2018. A two-step method resting on the probabilistic-gap (PGPU) assumption: the propensity score is a
+% monotone increasing function of the true gap, so the observed gap preserves order and can be used to extract
+% reliable positives and reliable negatives at the same time.
+\end{document}

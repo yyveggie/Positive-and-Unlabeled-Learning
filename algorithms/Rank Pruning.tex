@@ -1,0 +1,47 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{Rank Pruning}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Examples $X$; corrupted labels $s$; classifier \texttt{clf}
+	    \ENSURE
+	    Trained classifier \texttt{clf}
+	    \STATE \textbf{Part 1. Estimating noise rates}
+	    \STATE \texttt{clf.fit}$(X,s)$;\quad
+	    $g(x)\leftarrow$ \texttt{clf.predict\_crossval\_probability}$(\hat{s}=1\mid x)$ % cross-validated predicted probabilities, which avoid fitting to the instance itself
+	    \STATE $p_{s1}=\dfrac{\mathrm{count}(s=1)}{\mathrm{count}(s=0\vee s=1)}$
+	    \STATE $LB_{y=1}=\mathbb{E}_{x\in\tilde{P}}[g(x)]$,\quad
+	    $UB_{y=0}=\mathbb{E}_{x\in\tilde{N}}[g(x)]$
+	    \STATE $\hat{\rho}_{1}=\hat{\rho}_{1}^{\mathrm{conf}}
+	    =\dfrac{|\tilde{N}_{y=1}|}{|\tilde{N}_{y=1}|+|\tilde{P}_{y=1}|}$,\quad
+	    $\hat{\rho}_{0}=\hat{\rho}_{0}^{\mathrm{conf}}
+	    =\dfrac{|\tilde{P}_{y=0}|}{|\tilde{P}_{y=0}|+|\tilde{N}_{y=0}|}$ % the noise rate comes from counts of confident examples, not from average predicted probabilities
+	    \STATE $\hat{\pi}_{1}=\dfrac{\hat{\rho}_{0}}{p_{s1}}\cdot\dfrac{1-p_{s1}-\hat{\rho}_{1}}{1-\hat{\rho}_{1}-\hat{\rho}_{0}}$,\quad
+	    $\hat{\pi}_{0}=\dfrac{\hat{\rho}_{1}}{1-p_{s1}}\cdot\dfrac{p_{s1}-\hat{\rho}_{0}}{1-\hat{\rho}_{1}-\hat{\rho}_{0}}$
+	    \STATE \textbf{Part 2. Prune inconsistent examples}
+	    \STATE Remove $\hat{\pi}_{1}|\tilde{P}|$ examples in $\tilde{P}$ with the least $g(x)$;
+	    remove $\hat{\pi}_{0}|\tilde{N}|$ examples in $\tilde{N}$ with the greatest $g(x)$ % a fixed number is removed by rank, not by a probability threshold; this is removal by rank
+	    \STATE Denote the remaining training set $(X_{\mathrm{conf}},s_{\mathrm{conf}})$
+	    \STATE \texttt{clf.fit}$(X_{\mathrm{conf}},s_{\mathrm{conf}})$ with sample weights
+	    $w(x)=\dfrac{1}{1-\hat{\rho}_{1}}\mathbf{1}[s_{\mathrm{conf}}=1]
+	    +\dfrac{1}{1-\hat{\rho}_{0}}\mathbf{1}[s_{\mathrm{conf}}=0]$ % after pruning, the noise rates reweight the remainder to compensate for the removed mass
+		\RETURN \texttt{clf}
+	\end{algorithmic}
+\end{algorithm}
+% Northcutt, Wu, Chuang, UAI 2017 (arXiv 1705.01936), "Learning with Confident Examples:
+% Rank Pruning for Robust Classification with Noisy Labels". Transcribed line by line from Algorithm 1.
+% Setting: P~N~ learning, in which positives flip at rate rho_1 and negatives at rho_0. PU is the case rho_0 = 0.
+% Two claims, the mantra of the original:
+% (1) learning with confident examples: train only on positives whose predicted probability is near 1 and negatives
+%     near 0, treating the unconfident remainder as a separate noise class and removing it;
+% (2) removal by rank: rather than setting a probability threshold, estimate how many examples of each class are
+%     mislabeled and remove that many by the ordering of g(x). This uses the ranking without paying for a sort and is
+%     insensitive to the absolute calibration of the predicted probabilities, which is where the robustness comes from.
+% The noise rates are likewise estimated from counts of confident examples rather than by the usual mean-probability method.
+% The survey files it in branch H: its direct products are the noise rates rho_1, rho_0 and the proportions pi_1, pi_0.
+\end{document}

@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PEBL} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$
+	    \ENSURE
+	    Classifier $f$
+	    \STATE $PF\leftarrow \emptyset$ % the set of strong positive features (1-DNF)
+	    \FOR{each feature $t$}
+	    \IF{$\frac{freq(t,P)}{|P|}>\frac{freq(t,U)}{|U|}$}
+	    \STATE $PF\leftarrow PF\cup \{t\}$
+	    \ENDIF
+	    \ENDFOR
+	    \STATE $RN\leftarrow \{x\in U: x$ contains no feature in $PF\}$ % an instance carrying no strong positive feature is a reliable negative
+	    \STATE $Q\leftarrow U-RN$
+	    \STATE Assigned the label 1 to each sample in $P$
+	    \STATE Assigned the label 0 to each sample in $RN$
+	    \STATE $i\leftarrow 1$
+	    \WHILE{TRUE}
+	    \STATE $f_i\leftarrow$ Generate a SVM classifier$(P,RN)$
+	    \STATE Classify $Q$ using $f_i$
+	    \STATE Let the set of samples in $Q$ that are classified as negative be $W$
+	    \IF{$W\not=\emptyset$}
+	    \STATE $Q\leftarrow Q-W$
+	    \STATE $RN\leftarrow RN\cup W$
+	    \STATE $i\leftarrow i+1$
+	    \ELSE
+	    \STATE break
+	    \ENDIF
+	    \ENDWHILE
+		\RETURN Last classifier $f_i$
+	\end{algorithmic}
+\end{algorithm}
+% Yu et al., 2002/2004. Step 1: 1-DNF; Step 2: iterated SVM; Step 3: take the last classifier.
+\end{document}

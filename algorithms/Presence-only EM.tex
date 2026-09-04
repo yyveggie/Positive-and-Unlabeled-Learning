@@ -1,0 +1,52 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{Presence-only EM}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Covariates $\mathbf{X}$; observation indicator $z_{i}$ ($1$ = recorded presence,
+	    $0$ = background site); population prevalence $\pi=P(y=1)$;
+	    tolerance $\epsilon$
+	    \ENSURE
+	    Fitted model and the corrected linear predictor $\hat{\eta}$
+	    \STATE \textbf{Setting:} true presence $y$ is observed only when $z=1$; background sites
+	    have unknown $y$, so $y$ is treated as missing data % absence is very hard to confirm in ecology, so only presence and background points exist
+	    \STATE $\hat{y}_{i}^{(0)}\leftarrow 1$ for $z_{i}=1$;\quad
+	    $\hat{y}_{i}^{(0)}\leftarrow \pi$ for $z_{i}=0$ % before any model is fitted, the best guess at a background point is the unconditional prior
+	    \STATE $\mathrm{adj}\leftarrow \log\!\left(\dfrac{n_{p}+\pi n_{u}}{\pi n_{u}}\right)$,
+	    with $n_{p}=\#\{z_{i}=1\}$, $n_{u}=\#\{z_{i}=0\}$
+	    \FOR{$k=1,2,\dots$ until convergence}
+	    \STATE \textbf{M-step:} fit a standard logistic model (or GAM, boosted trees) of
+	    $\hat{\mathbf{y}}^{(k-1)}$ on $\mathbf{X}$, giving $\hat{\eta}^{\ast(k)}$ % the response is a real number in [0,1], so a non-integer label needs the weighted-observation treatment
+	    \STATE \quad $\hat{\eta}^{(k)}\leftarrow \hat{\eta}^{\ast(k)}-\mathrm{adj}$
+	    \hfill \emph{case--control intercept correction} % background points are sampled at a different rate from the real landscape, so the intercept must be corrected
+	    \STATE \textbf{E-step:}
+	    $\hat{y}_{i}^{(k)}\leftarrow \dfrac{e^{\hat{\eta}^{(k)}(\mathbf{x}_{i})}}{1+e^{\hat{\eta}^{(k)}(\mathbf{x}_{i})}}$
+	    for $z_{i}=0$;\quad $\hat{y}_{i}^{(k)}\leftarrow 1$ for $z_{i}=1$
+	    \STATE Stop when $\max_{i}\left|\hat{y}_{i}^{(k)}-\hat{y}_{i}^{(k-1)}\right|<\epsilon$
+	    \ENDFOR
+		\RETURN the fitted model and $\hat{\eta}$
+	\end{algorithmic}
+\end{algorithm}
+% Ward, Hastie, Barry, Elith, Leathwick, Biometrics 2009,
+% "Presence-Only Data and the EM Algorithm".
+% The application is species distribution modelling: only locations where the species was observed, plus background
+% points drawn at random from the whole landscape, whose true occupancy is unknown. That is the PU structure.
+% Why branch C: the population prevalence pi enters the model as a known quantity, both initializing the response at
+% background points and correcting the sampling bias through the intercept term log((n_p + pi n_u)/(pi n_u)).
+%
+% Three implementation notes given in the original:
+% (1) the y_hat produced by the E step is a real number in [0,1] at background points, and where a fitting routine
+%     rejects non-integer responses, weighted observations or an equivalent split-data device can be used;
+% (2) for stepwise algorithms such as boosted trees, which need hundreds of steps, the E step can be interleaved into
+%     tree construction (re-estimating y_hat every ten trees, say), which speeds convergence by about an order of magnitude;
+% (3) identifiability. Unless eta(x) is strongly constrained, for instance to be strictly linear, pi is not
+%     identifiable from presence-only data. It cannot be estimated inside the algorithm and must be supplied from
+%     external data or expert knowledge, with a sensitivity analysis over pi.
+% Point (3) matches the identifiability thread running through the survey: the prior under SCAR and the propensity
+% under SAR are both quantities the data cannot settle and that an outside assumption must supply.
+\end{document}

@@ -1,0 +1,44 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PNCT: co-training from positive and unlabeled documents}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    A set $PD$ of positive documents; a set $UD$ of unlabeled documents;
+	    an estimate $\hat{P}(1)$ of the positive class prior;
+	    parameters $p$, $n$, $k$
+	    \ENSURE
+	    $Combine(\mathsf{PNNB}_{1},\mathsf{PNNB}_{2})$
+	    \STATE Set $UD^{p}$ to $UD$;\quad set $ND$ to $\emptyset$
+	    \FOR{$k$ iterations}
+	    \STATE Create a pool $UD^{learn}$ by choosing
+	    $\dfrac{Card(PD)}{\hat{P}(1)}$ documents at random from $UD$ % the pool size is set from the prior so that its expected number of positives matches |PD|
+	    \FORALL{$i$ in $\{1,2\}$}
+	    \STATE Train $\mathsf{PNNB}_{i}$ with input $PD_{i}$, $UD_{i}^{learn}$, $ND_{i}$
+	    and $\hat{P}(1)$ % the class prior enters the naive Bayes parameter estimates directly, which is why this belongs to branch C
+	    \STATE Remove from $UD^{p}$ the $p$ examples that $\mathsf{PNNB}_{i}$ most confidently
+	    labels as positive and add them to $PD$
+	    \STATE Remove from $UD^{p}$ the $p$ examples that $\mathsf{PNNB}_{i}$ most confidently
+	    labels as negative and add them to $ND$ % the negative set ND starts empty and accumulates by self-labeling
+	    \ENDFOR
+	    \ENDFOR
+		\RETURN $Combine(\mathsf{PNNB}_{1},\mathsf{PNNB}_{2})$
+	\end{algorithmic}
+\end{algorithm}
+% Denis, Gilleron, Tommasi, ICML Workshop 2003, "Text Classification and Co-training from
+% Positive and Unlabeled Examples". Transcribed line by line from Table 4 of the original.
+% Baseline for comparison: Table 3 of the original is the standard co-training CT of Blum and Mitchell (1998), which
+% requires labeled documents of both classes at the outset and extends by p positives and n negatives.
+% Three changes make PNCT usable under PU:
+% (1) it starts from the positive set PD alone, with ND empty and filled by self-labeling round after round;
+% (2) the learning pool UD^learn is redrawn each round at size Card(PD)/P_hat(1), which uses the class prior to make
+%     the expected number of positives in the pool match the existing positive set, keeping the classes balanced;
+% (3) the base classifier becomes PNNB, which folds the class prior P_hat(1) into the naive Bayes parameter estimates.
+% Point (3) is why the survey files this record under branch C, prior and posterior correction, rather than branch A:
+% the defining operation is placing an assumed-known prior inside a probabilistic model, with co-training as the shell.
+% Note: the parameter n goes unused in the body of Table 4 (both extensions use p); it is transcribed as printed.
+\end{document}

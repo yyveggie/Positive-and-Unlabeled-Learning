@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{DEDPUL (difference-of-estimated-densities PU learning)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Unlabeled sample $X_{u}$; positive sample $X_{p}$;
+	    non-traditional classifier $g(\cdot)$
+	    \ENSURE
+	    Prior $\tilde{\alpha}^{\ast}$ and posteriors $\{\tilde{p}_{p}^{\ast}(x):x\in X_{u}\}$
+	    \STATE \textbf{Non-traditional classifier:} $g(x)\equiv \dfrac{f_{x_{p}}(x)}{f_{x_{p}}(x)+f_{x_{u}}(x)}$ % any P-versus-U discriminator will do; DEDPUL post-processes its output
+	    \STATE $\tilde{Y}_{u},\tilde{Y}_{p}\leftarrow g(X_{u}),\,g(X_{p})$
+	    \hfill \emph{NTC predictions} % compresses the d-dimensional problem to a one-dimensional score
+	    \STATE $\tilde{f}_{y_{u}}(y),\tilde{f}_{y_{p}}(y)\leftarrow \mathrm{kde}(\tilde{Y}_{u}),\,\mathrm{kde}(\tilde{Y}_{p})$
+	    \hfill \emph{kernel density estimation} % kernel density estimation on the one-dimensional score, avoiding density estimation in high dimension
+	    \STATE $\tilde{r}(y)\leftarrow \left\{\dfrac{\tilde{f}_{y_{p}}(y)}{\tilde{f}_{y_{u}}(y)}:y\in\tilde{Y}_{u}\right\}$
+	    \hfill \emph{density ratios, sorted}
+	    \STATE $\tilde{r}(y)\leftarrow \textsc{Monotonize}(\tilde{r}(y),\tilde{Y}_{u})$
+	    \hfill \emph{enforces partial monotonicity of the ratio curve} % the density-ratio curve is monotone in theory, and enforcing it cancels estimation noise
+	    \STATE $\tilde{r}(y)\leftarrow \textsc{RollingMedian}(\tilde{r}(y))$
+	    \hfill \emph{smooths the ratio curve}
+	    \STATE $\tilde{\alpha}_{c}^{\ast},\tilde{p}_{pc}^{\ast}(y)\leftarrow \textsc{EM}(\tilde{r}(y))$;\quad
+	    $\tilde{\alpha}_{n}^{\ast},\tilde{p}_{pn}^{\ast}(y)\leftarrow \textsc{MaxSlope}(\tilde{r}(y))$
+	    \hfill \emph{estimates priors and posteriors} % two estimation routes; EM is more accurate but can return an inadmissible solution
+	    \RETURN $\tilde{\alpha}_{c}^{\ast},\tilde{p}_{pc}^{\ast}(y)$ if $\tilde{\alpha}_{c}^{\ast}>0$,
+	    else $\tilde{\alpha}_{n}^{\ast},\tilde{p}_{pn}^{\ast}(y)$
+	\end{algorithmic}
+\end{algorithm}
+% Ivanov, ICMLA 2020 (arXiv 1902.06965), "DEDPUL: Difference-of-Estimated-Densities-based
+% Positive-Unlabeled Learning". Transcribed line by line from Algorithm 1 of the original.
+% Position: DEDPUL is not a training objective but a post-processing step applied to the output of any P-versus-U
+% discriminator. It returns the class prior and the per-instance posterior at once, which is why the survey counts it
+% both as a prior estimator and as a classifier. Key points:
+% (1) Under SCAR the class prior alpha is in general unidentifiable, and only its upper bound
+%     alpha* = inf_x f_xu(x)/f_xp(x) can be recovered; that bound is what DEDPUL estimates.
+% (2) Density estimation is infeasible in high dimension, so the NTC first compresses x to a one-dimensional score y
+%     on which the KDE is performed. (3) The density-ratio curve should be monotone, and MONOTONIZE together with
+%     ROLLING MEDIAN are the two corrections that push estimation noise back out (defined in Algorithm 2).
+\end{document}

@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PUe (normalized inverse-propensity weighting for biased PU learning)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Labeled positives $\chi_{P}$ ($n_{P}$); unlabeled set $\chi_{U}$ ($n_{U}$);
+	    classifier $g$; propensity network $e(\cdot)$; regularization weight $\alpha_{e}$;
+	    base PU estimator (uPU / nnPU / cost-sensitive)
+	    \ENSURE
+	    Classifier $g$; estimated propensity $\hat{e}$
+	    \STATE $\pi_{1}\leftarrow n_{P}/(n_{P}+n_{U})$
+	    \STATE \textbf{Step 1: estimate propensity scores with a regularized deep model}
+	    \STATE $\hat{e}(x)=\arg\min_{e}\ \dfrac{\pi_{1}}{n_{P}}\sum_{i=1}^{n_{P}}L\!\left(e(x_{i}^{P}),+1\right)
+	    +\dfrac{1-\pi_{1}}{n_{U}}\sum_{i=1}^{n_{U}}L\!\left(e(x_{i}^{U}),-1\right)
+	    +\alpha_{e}\left|\sum_{x_{i}\in\chi_{P}\cup\chi_{U}}e(x_{i})-n_{P}\right|$ % the regularizer prevents degeneracy, which would push labeled instances to 1 and unlabeled ones to 0
+	    \STATE \textbf{Step 2: normalized inverse-propensity weights}
+	    \STATE \quad Note $e(x)$ here is conditioned on the class being \emph{positive};
+	    negatives have zero probability of being labeled, so IPW applies only to the labeled part % the key difference from propensity scores in causal inference
+	    \STATE \quad Each labeled $(x_{i},s_{i}=1)$ with propensity $e_{i}$ stands for $1/e_{i}$ positives
+	    \STATE \quad $\omega_{i}^{P}\leftarrow \dfrac{1/e_{i}}{\sum_{j=1}^{n_{P}}1/e_{j}}$
+	    \hfill \emph{normalized, not raw, IPW} % normalization suppresses a common-direction shift; this is what PUe changes about ordinary IPW
+	    \STATE \textbf{Step 3: reconstruct the positive risk}
+	    \STATE \quad $\hat{R}_{P}^{e}(g,+1)=\sum_{i=1}^{n_{P}}\omega_{i}^{P}\,L\!\left(g(x_{i}^{P}),+1\right)$
+	    \STATE \textbf{Step 4: plug into any cost-sensitive PU estimator}
+	    \WHILE{stopping criterion is not met}
+	    \STATE Replace the positive-risk term of uPU / nnPU by $\hat{R}_{P}^{e}(g,+1)$ and update $g$ % PUe is a plug-in modification and does not replace the whole objective
+	    \ENDWHILE
+		\RETURN $g$, $\hat{e}$
+	\end{algorithmic}
+\end{algorithm}
+% X. Wang et al., NeurIPS 2023 (arXiv 2607.13428), "PUe: Biased Positive-Unlabeled
+% Learning Enhancement by Causal Inference". The original has no numbered algorithm block; compiled from Sections 3
+% and 4 and equations (5), (6) and (14).
+% Causal-inference view: which positives get labeled is treated as a selection-bias problem and corrected by a
+% propensity score with inverse probability weighting. The key difference from standard causal inference is that the
+% PU propensity score conditions on the instance being positive, and negatives have zero probability of being labeled,
+% so IPW acts only on the labeled positive part. Two technical points:
+% (1) Normalization. The raw IPW weights do not sum to 1 and introduce a common-direction shift, so PUe uses
+%     normalized weights (NIPW). (2) Estimating an unknown propensity score. Equation (14) fits e(x) with a
+%     regularized deep binary classifier, the regularizer holding sum e(x_i) near n_P to prevent a degenerate solution.
+% The original states plainly that bias grows sharply when the propensity score is underestimated toward 0, which is
+% the main risk in using the method.
+\end{document}

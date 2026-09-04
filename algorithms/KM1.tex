@@ -1,0 +1,44 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{KM1 / KM2 (mixture proportion estimation via kernel embeddings)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Mixture sample from $F$ ($N$ points); component sample from $H$ ($M$ points);
+	    RBF kernel; tolerance $\epsilon=0.04$; upper bound $\lambda_{\max}=8$
+	    \ENSURE
+	    Estimate $\hat{\lambda}^{\ast}$ where $G=\lambda^{\ast}F+(1-\lambda^{\ast})H$
+	    \STATE \textbf{Setting:} the mixture $F$ decomposes as
+	    $F=\lambda^{\ast}G+(1-\lambda^{\ast})H$; in PU terms $F$ is the unlabeled
+	    distribution and $H$ the positive one % the goal is to recover the mixing proportion, which is the class prior
+	    \STATE Select the RBF kernel width from the data
+	    \STATE \textbf{$C$-distance:} for a candidate $\lambda$,
+	    \STATE \quad $d(\lambda)=\inf_{w\in\mathcal{C}}\left\|\lambda\phi(F)+(1-\lambda)\phi(H)-w\right\|_{\mathcal{H}}$ % infer phi(G) from lambda, then measure its distance to the set C of valid distributions
+	    \STATE \quad Empirically, $\hat{d}(\lambda)$ (the $C_{S}$-distance) is obtained by projecting
+	    $u_{\lambda}=\dfrac{\lambda}{N}\mathbf{1}_{N}\oplus\dfrac{1-\lambda}{M}\mathbf{1}_{M}$
+	    onto the nearest valid distribution in the RKHS % the projection is a convex quadratic program, solved for each lambda
+	    \FORALL{$\lambda$ on a grid over $[0,\lambda_{\max}]$}
+	    \STATE Compute $\hat{d}(\lambda)$, warm-starting from the previous solution % solutions at neighbouring lambda are close, so warm starts save considerable time
+	    \ENDFOR
+	    \STATE \textbf{Gradient thresholding:} $\hat{d}$ is flat for $\lambda\leq\lambda^{\ast}$ and rises
+	    afterwards; locate the transition by thresholding the slope of $\hat{d}$ % the criterion is the break in slope, not the value of the distance itself
+	    \STATE $\hat{\lambda}^{\ast}\leftarrow$ the located transition point (binary search over $\lambda$)
+		\RETURN $\hat{\lambda}^{\ast}$
+	\end{algorithmic}
+\end{algorithm}
+% Ramaswamy, Scott, Tewari, ICML 2016 (arXiv 1603.02501), "Mixture Proportion Estimation
+% via Kernel Embeddings of Distributions". Compiled from Sections 3 to 6 (the C-distance definitions in equations (1)
+% and (2), and the binary search), and checked against the released Kernel_MPE_grad_threshold.py.
+% Idea: embed the distributions in an RKHS, and for each candidate proportion lambda infer the implied component
+% distribution and measure its distance d(lambda) to the set of valid distributions. Below the true lambda* the
+% distance is identically zero (feasible) and above it the distance rises (infeasible), so lambda* is the turning
+% point of the curve. In practice the threshold is applied to the slope of d rather than to its value, which is what
+% the name gradient thresholding refers to and what makes it more robust to sampling noise.
+% KM1 and KM2 are two variants from the same paper, differing in how the distance curve is treated; Figure 2 of the
+% survey keeps only KM1 as the primary name.
+% The method is the main comparison baseline for later prior estimators such as BBE and TIcE.
+\end{document}

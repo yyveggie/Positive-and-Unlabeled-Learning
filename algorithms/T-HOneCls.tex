@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Taylor variational loss with self-calibrated optimization (T-HOneCls)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P$ ($n_{p}$ samples); $U$ ($n_{u}$ samples); student network $f_{\theta_{S}}$;
+	    teacher network $f_{\theta_{T}}$; Taylor order $o\in\mathbb{N}^{+}$;
+	    EMA coefficient $\alpha$; consistency weight $\beta$
+	    \ENSURE
+	    Classifier $f_{\theta_{T}}$ (no class prior required)
+	    \STATE Initialize $\theta_{T}^{0}\leftarrow \theta_{S}^{0}$
+	    \FOR{$t=1,2,\dots$}
+	    \STATE Sample mini-batches $P_{b}\subset P$, $U_{b}\subset U$
+	    \STATE $\sigma_{u}\leftarrow 1-\dfrac{1}{n_{u}}\sum_{i}f(x_{i}^{u})$,\qquad
+	    $\sigma_{p}\leftarrow \sum_{i}\log f(x_{i}^{p})$
+	    \STATE $\hat{\mathcal{L}}_{\mathrm{Tar}}\leftarrow \sum_{i=1}^{o}-\dfrac{\sigma_{u}^{i}}{i}-\dfrac{\sigma_{p}}{n_{p}}$ % an o-th order Taylor truncation of log(E_U[f]) inside the variational loss
+	    \STATE \quad\emph{(the $o\to\infty$ limit recovers the variational loss; truncation gives $\hat{\mathcal{L}}_{\mathrm{Tar}}\geq \mathcal{L}_{\mathrm{var}}$)} % the truncation remains a variational upper bound, so the variational principle is not broken
+	    \STATE \quad\emph{unlabeled gradient weight becomes} $\dfrac{1-\sigma_{u}^{o}}{\sum_{i}f(x_{i}^{u})}$ % this weight diverges as f approaches 0 in the original loss; truncation bounds it and training stops destabilizing
+	    \STATE $\mathcal{L}_{kl}\leftarrow \mathrm{KL}\!\left(f_{\theta_{T}}(x)\,\|\,f_{\theta_{S}}(x)\right)$ over $U_{b}$ % teacher-student consistency, which supplies extra signal on the unlabeled pool
+	    \STATE $\mathcal{L}_{S}\leftarrow \hat{\mathcal{L}}_{\mathrm{Tar}}+\beta\mathcal{L}_{kl}$
+	    \STATE $\theta_{S}^{t}\leftarrow \theta_{S}^{t-1}-\eta\nabla_{\theta_{S}}\mathcal{L}_{S}$
+	    \STATE $\theta_{T}^{t}\leftarrow \alpha\theta_{T}^{t-1}+(1-\alpha)\theta_{S}^{t}$ % the teacher is an exponential moving average of the student and acts as a stable F1 filter
+	    \ENDFOR
+		\RETURN $f_{\theta_{T}}$
+	\end{algorithmic}
+\end{algorithm}
+% H. Zhao et al., ICCV 2023, "Class Prior-Free Positive-Unlabeled Learning with Taylor
+% Variational Loss for Hyperspectral Remote Sensing Imagery" (repository name T-HOneCls).
+% The original has no numbered algorithm block; compiled from equations (10) to (18).
+% Starting point: the variational loss of VPU is prior-free, but optimizing log(E_U[f]) directly lets the network
+% drive f(x_u) toward 0, so the gradient weight on unlabeled samples keeps growing and training destabilizes, the
+% more visibly the fewer the positives. Method: expand log(E_U[f]) at x_0 = 1 as sum_i -(1-E_u[f])^i / i and keep the
+% first o terms. After truncation the loss still exceeds the variational bound (equation 13), while the unlabeled
+% gradient weight becomes (1-sigma_u^o)/sum f(x_u), bounded by o.
+% Self-calibrated optimization: the teacher updates as an EMA of the student and the KL between their outputs is extra
+% supervision. The setting is single-class hyperspectral remote sensing, but the loss itself is modality-independent.
+\end{document}

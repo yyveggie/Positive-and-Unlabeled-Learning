@@ -1,0 +1,37 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{GPU learning: \textsc{LearnGPU}$(\mathcal{P},\mathcal{U})$}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    A set $\mathcal{P}=\{(\mathbf{x}^{i},1)\}_{i=1}^{m_{\mathcal{P}}}$ of positive samples,
+	    and a set $\mathcal{U}=\{\mathbf{x}^{i}\}_{i=1}^{m_{\mathcal{U}}}$ of unlabeled samples
+	    over RVs $\mathbf{X}\cup\{Y\}$, with $\mathrm{Val}(Y)=\{0,1\}$
+	    \ENSURE
+	    A trained discriminative model learned on positive samples $\mathcal{P}$ and reliable
+	    negative samples $\mathcal{N}$ extracted from $\mathcal{U}$
+	    \STATE $\mathcal{G}\leftarrow \textsc{learnGenerativeModel}(\mathcal{P},\mathbf{X})$
+	    \hfill $\triangleright$ \emph{learn a generative model $\mathcal{G}$ from $\mathcal{P}$} % the density is estimated from the positives alone; U is untouched
+	    \STATE $\mathcal{L}\leftarrow \left\{\log p_{\mathcal{G}}(\mathbf{x}^{i})\ \middle|\ \mathbf{x}^{i}\in\mathcal{U}\right\}$ % score every unlabeled instance by the positive-class density
+	    \STATE $\mathcal{N}\leftarrow \textsc{reliableNegativeSamples}(\mathcal{L},\mathcal{P},\mathcal{U})$ % those with the lowest log-likelihood are taken as reliable negatives
+	    \STATE $f\leftarrow \textsc{fitClassifier}(\mathcal{P},\mathcal{N})$
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+% Basile, Di Mauro, Esposito, Ferilli, Vergari, NFMCP 2018,
+% "Density Estimators for Positive-Unlabeled Learning". Transcribed line by line from Algorithm 1 of the original.
+% Naming: GPU here stands for Generative Positive-Unlabeled and has nothing to do with graphics hardware.
+% Position: the skeleton is still two-step, but the reliable-negative selector of the first step becomes density
+% estimation. A generative model G is learned from P alone, every instance of U is scored by log p_G(x), and the
+% lowest-likelihood group becomes the reliable negative set.
+% Contrast with other two-step methods: Spy-EM sets its threshold with spy instances, Roc-SVM uses a Rocchio centroid,
+% PEBL uses 1-DNF features and C-CRNE uses multi-cluster radii, whereas this method uses the likelihood under the
+% positive distribution itself. The gain is a selection rule with a clear probabilistic meaning; the cost is that
+% reliable density estimation on X must be possible, which is why the original discusses tractable probabilistic
+% models such as sum-product networks as the choice of G. Note: the criterion inside reliableNegativeSamples, what
+% fraction to take and how the threshold is set, is given in the body of the original and not in the algorithm block.
+\end{document}

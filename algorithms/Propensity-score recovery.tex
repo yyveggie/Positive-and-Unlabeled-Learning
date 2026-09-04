@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Propensity-PU: probabilistic-gap (PG) propensity recovery under SAR} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Features $X$; label indicator $s\in\{0,1\}$ ($s=1$ means observed positive);
+	    posterior model class for $h$; classifier $g_{\theta}$; $L_{2}$ weight $\lambda$
+	    \ENSURE
+	    Recovered propensity $\hat{e}(x)$; debiased classifier $g_{\theta}$
+	    \STATE \textbf{Setting:} SAR --- the labeling propensity $e(x)=P(s=1\mid y=1,x)$
+	    depends on $x$, so SCAR-based methods are biased % the method observes X and s only, never y
+	    \STATE \textbf{Step 1: estimate the label-indicator posterior}
+	    \STATE \quad $h(x)=P(s=1\mid x)$, fitted by cross-fitting (out-of-fold predictions) % cross-fitting with out-of-fold predictions, which avoids in-fold overconfidence
+	    \STATE \textbf{Step 2: probabilistic-gap identification}
+	    \STATE \quad $k\leftarrow \sup_{x}h(x)$
+	    \STATE \quad $\hat{e}(x)\leftarrow \sqrt{k\,h(x)}$ % the PG identification formula: the propensity score is recoverable from the observable h(x)
+	    \STATE \quad Only $\hat{e}$ at observed positives enters the training objective % the propensity is undefined at negatives, which therefore take no part
+	    \STATE \textbf{Step 3: propensity-weighted risk}
+	    \WHILE{stopping criterion is not met}
+	    \STATE $\mathcal{R}\leftarrow \mathrm{mean}\!\left[\dfrac{s}{\hat{e}}\,\ell_{+}(g_{\theta}(x))
+	    +\left(1-\dfrac{s}{\hat{e}}\right)\ell_{-}(g_{\theta}(x))\right]+\lambda\|\theta\|^{2}$ % inverse propensity weighting: one observed positive stands for 1/e(x) true positives
+	    \STATE Update $\theta$ by gradient descent on $\mathcal{R}$
+	    \ENDWHILE
+		\RETURN $\hat{e}$, $g_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% Gerych et al., AAAI 2022, "Recovering the Propensity Score from Biased Positive
+% Unlabeled Data". Compiled from the PG identification formula and the propensity-weighted risk of equation (1), and
+% checked against this project's reimplementation, experiments/src/run_propensity_weighted_track.py.
+% The key contribution is identifiability: e(x) is in general unidentifiable under SAR, but under the probabilistic
+% gap condition it is recoverable in closed form from the fully observable h(x) = P(s=1|x) as e_hat(x) = sqrt(k h(x)),
+% with k = sup_x h(x). This is one of the few works that recovers the mechanism before debiasing rather than bypassing it.
+% Implementation note: the model class for h is an interchangeable backbone choice (this project uses histogram
+% gradient boosting with five-fold OOF). Neither the PG formula nor the downstream risk changes with it, and e_hat
+% needs a numerical floor to prevent division by zero.
+\end{document}

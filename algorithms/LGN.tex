@@ -1,0 +1,65 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{LGN: generating a negative document $A_{N}$ and building the final NB classifier}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    $P$: training documents from all classes (treated as positive);
+	    $U=T$: the test set (class labels in $T$ ignored if present);
+	    vocabulary $V$
+	    \ENSURE
+	    $UE$: the set of unexpected document instances
+	    \STATE \textbf{Part 1 (Fig.~2): generate the negative document $A_{N}$}
+	    \STATE $A_{N}\leftarrow \Phi$
+	    \FORALL{features $w_{i}\in U$}
+	    \STATE Compute the frequency of $w_{i}$ in each document $d_{k}\in U$: $freq(w_{i},d_{k})$
+	    \STATE $\mu_{w_{i}}\leftarrow \dfrac{\sum_{d_{k}\in D_{w_{i}}}freq(w_{i},d_{k})}{|D_{w_{i}}|}$,
+	    where $D_{w_{i}}$ is the set of documents containing $w_{i}$
+	    \STATE $\sigma_{w_{i}}^{2}\leftarrow \dfrac{1}{|D_{w_{i}}|-1}\sum_{d_{k}\in D_{w_{i}}}
+	    \left(freq(w_{i},d_{k})-\mu_{w_{i}}\right)^{2}$
+	    \ENDFOR
+	    \FORALL{features $w_{i}\in V$}
+	    \STATE Compute $\Pr(w_{i}\mid +)$, $\Pr(w_{i}\mid -)$ using Equation~(2), assuming that all
+	    documents in $U$ are negative % a deliberately biased assumption, used only to obtain the discriminative power of each word
+	    \STATE $entropy(w_{i})\leftarrow -\sum_{c\in\{+,-\}}\Pr(w_{i}\mid c)\log\Pr(w_{i}\mid c)$
+	    \ENDFOR
+	    \STATE $m\leftarrow \max\left(entropy(w_{j})\right)$, $j=1,\dots,|V|$
+	    \FORALL{features $w_{i}\in V$}
+	    \STATE $q(w_{i})\leftarrow 1-\dfrac{entropy(w_{i})}{m}$ % lower entropy means more discriminative, hence more draws
+	    \FOR{$j=1$ \TO $\lceil |D_{w_{i}}|\cdot q(w_{i})\rceil$}
+	    \STATE Generate a frequency $fnew(w_{i})$ using the Gaussian distribution
+	    $\dfrac{1}{\mu_{w_{i}}\sqrt{2\pi}}e^{-\frac{(x-\mu_{w_{i}})^{2}}{2\sigma_{w_{i}}^{2}}}$
+	    \STATE $A_{N}\leftarrow A_{N}\cup\{(w_{i},fnew(w_{i}))\}$
+	    \ENDFOR
+	    \ENDFOR
+	    \STATE \textbf{Part 2 (Fig.~3): build the final NB classifier}
+	    \STATE $UE\leftarrow \Phi$
+	    \STATE Build a naive Bayesian classifier $Q$ with $P$ and $\{A_{N}\}$ using Equations~(1) and~(2) % the negative side consists of one artificial document only
+	    \FORALL{documents $d_{i}\in U$}
+	    \STATE Classify $d_{i}$ with $Q$ using Equation~(3)
+	    \IF{$\Pr(-\mid d_{i})>\Pr(+\mid d_{i})$}
+	    \STATE $UE\leftarrow UE\cup\{d_{i}\}$
+	    \ENDIF
+	    \ENDFOR
+		\RETURN $UE$
+	\end{algorithmic}
+\end{algorithm}
+% Li, Liu, Ng, IJCAI 2007, "Learning to Identify Unexpected Instances in the Test Set".
+% Transcribed line by line from Figures 2 and 3 of the original.
+% Fundamental difference from the other two-step methods in this branch: the others select reliable negatives from U,
+% whereas LGN generates one artificial negative document A_N, and the negative side never holds anything else.
+% The generation rule has two parts:
+% (1) the frequency of each word is drawn from its Gaussian N(mu_wi, sigma_wi^2) over U;
+% (2) the number of draws follows q(w_i) = 1 - entropy(w_i)/m, so a lower-entropy word, being more useful for telling
+%     positive from negative, appears more often in the artificial negative document.
+% Treating all of U as negative on line 9 is a deliberately biased premise whose sole purpose is to compute word
+% entropies; it plays no part in the final classification.
+% Task background: detecting unexpected instances in the test set, that is, classes unseen during training, which is
+% why line 2 treats every training class as positive.
+% Note: the denominator of the Gaussian density on line 16 is written mu_wi * sqrt(2pi) in the original, where the
+% standard form would be sigma_wi * sqrt(2pi). It is transcribed as printed, without correction.
+\end{document}

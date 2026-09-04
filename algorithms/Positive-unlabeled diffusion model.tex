@@ -1,0 +1,53 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Positive-unlabeled diffusion models (preventing sensitive data generation)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Unlabeled set $\mathcal{U}=\{x^{(n)}\}_{n=1}^{N}$ (contains sensitive data);
+	    labeled sensitive set $\mathcal{S}=\{\tilde{x}^{(m)}\}_{m=1}^{M}$;
+	    diffusion model $\epsilon_{\theta}$; sensitive ratio $\beta\in[0,1]$
+	    \ENSURE
+	    Diffusion model $\theta$ generating only normal data
+	    \STATE \textbf{Convention:} normal data are the \emph{negative} class ($y=0$);
+	    sensitive data are the \emph{positive} class ($y=1$) % the reverse of ordinary PU: the positive class here is the one to be suppressed
+	    \STATE Let $\ell(x;\theta)$ be the simplified diffusion objective; maximizing the ELBO
+	    is equivalent to minimizing $\ell(x;\theta)$
+	    \STATE \textbf{Why not simply maximise $\ell$ on sensitive data:} $\ell$ is bounded below
+	    but unbounded above, so maximising it diverges % unbounded above, so maximizing it directly diverges and the parameters lose meaning
+	    \STATE \textbf{Binary-classification reformulation:} model
+	    $p_{\theta}(y\mid x)$ through $\ell(x;\theta)$ and take
+	    \STATE \quad $\ell_{BCE}(x,y;\theta)=(1-y)\,\ell(x;\theta)-y\log\!\left(1-e^{-\ell(x;\theta)}\right)$ % both terms are bounded below, so nothing diverges, and they balance without an extra hyperparameter
+	    \STATE \textbf{Mixture identity:} $p_{U}(x)=\beta p_{S}(x)+(1-\beta)p_{N}(x)$, hence
+	    \STATE \quad $(1-\beta)p_{N}(x)=p_{U}(x)-\beta p_{S}(x)$ % the normal-data distribution cannot be sampled directly, so this identity rewrites it
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample a batch from $\mathcal{U}$ and a batch from $\mathcal{S}$
+	    \STATE Form the PU risk: approximate the normal-data term
+	    $\mathbb{E}_{p_{N}}\!\left[\ell_{BCE}(x,0;\theta)\right]$ by
+	    $\dfrac{1}{1-\beta}\left(\mathbb{E}_{p_{U}}\!\left[\ell_{BCE}(x,0;\theta)\right]
+	    -\beta\,\mathbb{E}_{p_{S}}\!\left[\ell_{BCE}(x,0;\theta)\right]\right)$ % the ELBO of the normal data is approximated from U and S alone
+	    \STATE Add the sensitive term $\mathbb{E}_{p_{S}}\!\left[\ell_{BCE}(x,1;\theta)\right]$
+	    \STATE Update $\theta$ by gradient descent on the combined objective
+	    \ENDWHILE
+		\RETURN $\theta$
+	\end{algorithmic}
+\end{algorithm}
+% Takahashi, Iwata, Kumagai, Yamanaka, Yamashita (NTT Corporation), ICLR 2025
+% (arXiv 2503.03789), "Positive-Unlabeled Diffusion Models for Preventing Sensitive
+% Data Generation". The original has no numbered algorithm block; compiled from Sections 2 and 3 and equations (9),
+% (11), (12), (13) and (14). Setting: the training set contains sensitive content that cannot all be labeled, and the
+% goal is a diffusion model that generates only normal data. Three steps, in the order the original argues them:
+% (1) Unsupervised (equation 9): treat all of U as normal. Since U already holds sensitive data, the model still
+%     generates it. (2) Supervised (equation 12): assume U is entirely normal and S sensitive, with a BCE objective.
+%     The key design is equation (11): maximizing l on the sensitive set directly would diverge, whereas
+%     -log(1 - exp(-l)) bounds both terms below and balances them without an extra hyperparameter.
+% (3) PU (Section 3.2): the fact that U contains sensitive data is handled by the mixture identity (14), so the ELBO
+%     of the normal data is approximated from U and S alone.
+% Note the class direction is the reverse of ordinary PU: the labeled positive class is the sensitive data to be
+% suppressed, while the distribution to be learned is the negative class. beta comes from any prior estimator.
+% This is the first work training a diffusion model under PU, filed in branch G, generative and distribution learning.
+\end{document}

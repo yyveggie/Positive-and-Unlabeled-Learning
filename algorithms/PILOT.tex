@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PILOT: distance-aware label selection for PU vulnerability detection}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Source code $\mathcal{X}$ with labels $\mathcal{C}$ ($c_{i}=1$ vulnerable, $c_{i}=0$ unlabeled);
+	    thresholds $T_{\max},T_{\min}$; neighbour count $k$; ratio $T_{r}$
+	    \ENSURE
+	    Pseudo-negative set $\mathcal{I}^{HN}$, pseudo-positive set $\mathcal{I}^{HP}$
+	    \STATE \textbf{Encode:} $x^{0}=H^{0}[\mathrm{CLS}]+H^{L}[\mathrm{CLS}]$ from CodeBERT's
+	    first and last layers % the first and last layers are summed, combining global and local information
+	    \STATE \textbf{Part 1: inter-class distance prototype}
+	    \FORALL{unlabeled $i$ (i.e.\ $c_{i}=0$)}
+	    \STATE Take the $k$ nearest labeled positives; form the prototype as their mean vector
+	    \STATE $D_{i}^{p}\leftarrow \mathrm{Topk}\sum_{k}\sum_{m}^{dim}\left|x_{i}^{0}[m]-x_{j}^{0}[m]\right|$
+	    \hfill \emph{summed prototype distance} % the summed distance to the k nearest positives
+	    \STATE $M_{i}^{p}\leftarrow \left|x_{i}^{0}[m]-\tfrac{1}{k}\mathrm{Topk}\sum_{k}x_{j}^{0}[m]\right|$
+	    \hfill \emph{distance to the prototype mean} % the distance to the prototype mean
+	    \ENDFOR
+	    \STATE $T\leftarrow T_{r}\cdot n_{u}/n_{p}$;\quad rank by $D_{i}^{p}$ and by $M_{i}^{p}$
+	    separately, take $T$ samples from each
+	    \STATE $\mathcal{I}^{HN}\leftarrow \mathcal{I}_{D}^{HN}\cap\mathcal{I}_{M}^{HN}$
+	    \hfill \emph{only samples satisfying \emph{both} criteria} % the intersection, which is more conservative than either criterion alone
+	    \STATE \textbf{Part 2: progressive fine-tuning}
+	    \FORALL{training epochs}
+	    \STATE Fine-tune $\Omega$ on samples with $c_{i}=1$ or $i\in\mathcal{I}^{HN}$ % only confirmed positives and high-quality negatives are used
+	    \FORALL{$i$ with $c_{i}=0$ and $i\notin\mathcal{I}^{HN}$}
+	    \STATE $p_{i}\leftarrow$ prediction of $\Omega$
+	    \STATE \textbf{if} $p_{i}>T_{\max}$ \textbf{then} add $i$ to $\mathcal{I}^{HP}$ % high-confidence positives are added round by round
+	    \STATE \textbf{if} $p_{i}<T_{\min}$ \textbf{then} add $i$ to $\mathcal{I}^{HN}$ % and high-confidence negatives likewise, which is what progressive refers to
+	    \ENDFOR
+	    \ENDFOR
+		\RETURN $\mathcal{I}^{HN}$, $\mathcal{I}^{HP}$
+	\end{algorithmic}
+\end{algorithm}
+% Wen, Chen, Gao et al., ASE 2023, "When Less is Enough: Positive and Unlabeled Learning
+% Model for Vulnerability Detection". Compiled from Algorithm 1, equations (5), (6) and (7), and Appendix B.
+% Task background: confirmed vulnerable functions are very few, and unlabeled code holds both safe code and
+% undiscovered vulnerabilities, which makes this a natural PU problem. Less is enough refers to training from a small
+% number of confirmed vulnerabilities. Two components:
+% (1) Distance prototypes. Each unlabeled instance gets its own k nearest known vulnerable samples as its prototype,
+%     rather than a single centroid over all positives, because vulnerability types are highly varied and one
+%     prototype cannot cover them. The two criteria D_i^p, a summed distance, and M_i^p, a distance to the prototype
+%     mean, must both hold, and the intersection makes the pseudo-negatives more reliable.
+% (2) Progressive fine-tuning. Each round adds unlabeled instances whose confidence exceeds T_max or falls below
+%     T_min to the pseudo-positive and pseudo-negative sets, so the training set grows round by round.
+%
+% Point needing verification: line 9 of Algorithm 1 reads "chose Top K samples index as negative samples", and the
+% body likewise says the sample that exhibits the maximum distance difference is selected as HN, which agree, since
+% the further from the positives the more likely negative. The same passage also contains "The smallest T samples ...
+% will be selected", which points the other way. This pseudocode follows the algorithm block; confirm against the original.
+\end{document}

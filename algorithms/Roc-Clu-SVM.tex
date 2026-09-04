@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Roc-Clu-SVM} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;k=$ the number of clusters; $\alpha=$ adjust the relative impact of positive samples; $\beta=$ adjust the relative impact of negative
+	    \ENSURE
+	    Classifier $f$ \\
+	    \STATE $RN=\{\}$
+	    \STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+	    \STATE $\vec{c}^{+}\leftarrow \alpha \frac{1}{|P|} \sum_{x \in P} \frac{\vec{x}}{\|\vec{x}\|}-\beta \frac{1}{|U|} \sum_{x \in U} \frac{\vec{x}}{\|\vec{x}\|}$
+	    \STATE $\vec{c}^{-}\leftarrow \alpha \frac{1}{|U|} \sum_{x \in U} \frac{\vec{x}}{\|\vec{x}\|}-\beta \frac{1}{|P|} \sum_{x \in P} \frac{\vec{x}}{\|\vec{x}\|}$
+	    \FOR{each sample $x^{'}$ in $U$}
+	    \IF{$sim(\vec{c}^{+},\vec{x}^{'})<=sim(\vec{c}^{-},\vec{x}^{'})$}
+	    \STATE $RN\leftarrow RN\cup x^{'}$
+	    \ENDIF
+	    \ENDFOR
+	    \STATE Choose $k$ initial cluster centers$\{O_1, O_2, \dots , O_k\}$ randomly from $RN$
+	    \STATE Perform $k$-means clustering to produce $k$ clusters, i.e. $N_1$, $N_2$,\dots, $N_k$
+	    \FOR{$j\leftarrow 1$ to $k$}
+	    \STATE $\vec{n}_{j}\leftarrow \alpha \frac{1}{\left|N_{j}\right|} \sum_{\vec{x} \in N_{j}} \frac{\vec{x}}{\|\vec{x}\|}-\beta \frac{1}{|P|} \sum_{\vec{x} \in P} \frac{\vec{x}}{\|\vec{x}\|}$
+	    \STATE $\vec{p}_{j}\leftarrow \alpha \frac{1}{\left|P\right|} \sum_{\vec{x} \in P} \frac{\vec{x}}{\|\vec{x}\|}-\beta \frac{1}{|N_{j}|} \sum_{\vec{x} \in N_{j}} \frac{\vec{x}}{\|\vec{x}\|}$
+	    \ENDFOR
+	    \STATE $RN^{'}\leftarrow \{\}$
+	    \FOR{$x_i\in RN$}
+	    \STATE Find the nearest positive prototype vector $\vec{p}_v$ to $x_i$, where $v\leftarrow \arg \max_{j} \operatorname{sim}\left(\vec{p}_{j}, x_{i}\right)$
+	    \IF{there exist a $\vec{n}_j(j=1, 2, \dots, k),\ s.t.$\\    
+	       $sim(\vec{p}_v,x_i)<=sim(\vec{n}_j,x_i)$}
+	    \STATE $RN^{'}\leftarrow RN^{'}\cup x_i$
+	    \ENDIF
+	    \ENDFOR
+	    \STATE $Q\leftarrow U-RN^{'}$
+	    \STATE $i\leftarrow 1$
+	    \STATE Assigned the label 0 to each sample in $RN^{'}$
+	    \STATE $S_i\leftarrow$ Generate a SVM classifier$(P,RN^{'})$
+	    \STATE Classify $Q$ using $S_i$
+	    \STATE Let the set of samples in $Q$ that are classified as negative be $W$
+	    \IF{$|W|\not=0$}
+	    \STATE $Q\leftarrow Q-W$
+	    \STATE $RN^{'}\leftarrow RN^{'}\cup W$
+	    \STATE $i\leftarrow i+1$
+	    \STATE go to (27)
+	    \ELSE
+	    \STATE break
+	    \ENDIF
+	    \STATE Use the last SVM classifier $S_{last}$ to classify $P$
+	    \IF{more than 5\% $P$ are classified as negative}
+	    \STATE $f\leftarrow S_1$
+	    \ELSE
+	    \STATE $f\leftarrow S_{last}$
+	    \ENDIF
+	    \RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

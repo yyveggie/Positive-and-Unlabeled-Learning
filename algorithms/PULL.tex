@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PULL (link prediction for edge-incomplete graphs via PU learning)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Edge-incomplete graph $G_{P}=(V,E_{P})$; feature matrix $X$;
+	    set $E_{U}$ of unconnected edges; hyperparameter $r$; link predictor $f_{\theta}$
+	    \ENSURE
+	    Best parameters $\theta$ of the link predictor $f_{\theta}$
+	    \STATE \textbf{Setting:} observed edges $E_{P}$ are positives; unconnected pairs $E_{U}$ are
+	    \emph{unlabeled}, not negatives % no edge at present does not mean no edge should exist, which is the PU structure
+	    \STATE Randomly initialize $\theta_{new}$, and initialize $K$ as $|E_{P}|$
+	    \REPEAT
+	    \STATE $\theta\leftarrow \theta_{new}$
+	    \STATE $\bar{G}\leftarrow \mathbb{E}_{z\sim p(z\mid X,E_{P},\theta)}[A(z)]=A_{\bar{G}}$
+	    \hfill \emph{expected graph over latent variables} % introduce a latent variable z for every unconnected pair and take the expected adjacency matrix
+	    \STATE Approximate $\bar{G}$ to $\bar{G}'$ by selecting $K$ confident edges from a set of
+	    candidate edges % the expected graph is dense and cannot be formed directly, so only the K most confident edges are kept
+	    \STATE $K\leftarrow K+|E_{P}|\cdot r$
+	    \hfill \emph{grow the budget each round} % the budget widens each round, from easy to hard
+	    \STATE $\theta_{new}\leftarrow \arg\min_{\theta}\mathcal{L}(\theta;\bar{G}',X)$
+	    \UNTIL{the maximum number of iterations is reached or early stopping is met}
+		\RETURN $\theta$
+	\end{algorithmic}
+\end{algorithm}
+% Kim, Park, Yoon, Kang, AAAI 2025 (arXiv 2405.11911), "Accurate Link Prediction for
+% Edge-Incomplete Graphs via PU Learning". Compiled from Algorithm 1 and equations (3) to (6) of the original.
+% Modelling: link prediction on an edge-incomplete graph is naturally PU. Observed edges are positives and unconnected
+% pairs are merely unobserved, so training them as negatives systematically suppresses real but unrecorded edges.
+% Three difficulties and the responses, as the original states them:
+% (1) the labels of unconnected edges are unknown, so a latent variable z is introduced for each;
+% (2) computing the expected graph naively is infeasible, so the K most confident candidate edges form G_bar';
+% (3) improvement must be gradual, so K grows by |E_P| * r each round and expected graph and predictor improve together.
+% Relation to EM: line 5 takes the expectation, which is the E step, and line 8 minimizes the loss, the M step.
+% Difference from GPL in this branch: GPL addresses the bias heterophilic structure causes in node classification,
+% while PULL addresses the PU structure of edge prediction itself; the two target different graph PU problems.
+\end{document}

@@ -1,0 +1,47 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PU-GNN (polypharmacy side-effect prediction via biclustering, PU learning and a GNN)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Drug--target associations; drug--drug interaction network with edge types $r$;
+	    known polypharmacy side-effect pairs (positives) and unknown pairs (unlabeled);
+	    number of GNN levels $K$
+	    \ENSURE
+	    Predicted side effects for drug pairs
+	    \STATE \textbf{Step 1: feature vector extraction by biclustering (SPP)}
+	    \STATE Run SPP (similar patterns of target protein) to find biclusters of drugs based on
+	    coregulated patterns between drug targets % yields drug subsets from which a compact feature vector is formed for each drug
+	    \STATE Build a compact feature vector for every drug from its genewise similarity patterns
+	    \STATE \textbf{Step 2: reduce uncertainty in the input data by PU learning}
+	    \STATE \emph{Motivation:} in the medical setting an unknown drug pair is not a negative ---
+	    the side effect may exist but be unrecorded % this is exactly the PU structure: unrecorded is not the same as absent
+	    \STATE Using the SPP features, run a PU learning procedure as a \emph{preprocessing} step
+	    to separate reliable positives and reliable negatives out of the unknown pairs % PU is preprocessing here, not the final classifier
+	    \STATE \quad The core classifier is selected empirically among random forest, logistic
+	    regression, $k$-nearest neighbours, Gaussian NB and decision tree % the original compares five base classifiers and keeps the best
+	    \STATE \textbf{Step 3: predict polypharmacy side effects with a GNN}
+	    \FOR{$k=1$ \TO $K$}
+	    \STATE $u_{i,r}^{(k)}\leftarrow \sigma\!\left(\mathrm{mean}\!\left(\{u_{j,r}^{(k-1)}:v_{j}\in N_{i,r}\}\right)\right)$
+	    \hfill \emph{aggregate neighbour edge embeddings per edge type $r$} % aggregated separately per edge type, since different side effects are different edge types
+	    \ENDFOR
+	    \STATE Combine node and edge embeddings to score each drug pair against each side-effect type
+	    \RETURN the multiclass multilabel side-effect predictions
+	\end{algorithmic}
+\end{algorithm}
+% Keshavarz \& Lakizadeh, International Journal of Intelligent Systems 2024, 2024(1):4749668,
+% "PU-GNN: A Positive-Unlabeled Learning Method for Polypharmacy Side-Effects Detection
+% Based on Graph Neural Networks". The original has no numbered algorithm block; compiled from Sections 2.2.1 to
+% 2.2.3 and equation (3).
+% The three steps answer the three challenges listed in the original:
+% (1) drug features are hard to characterise, so SPP biclustering extracts compact features;
+% (2) the input data is uncertain, so PU learning separates the unknown pairs into reliable positives and negatives;
+% (3) network topology goes unused, so a GNN models node and edge embeddings together.
+% Position: PU acts here as a preprocessing stage that cleans labels, not as the final predictive model. The survey
+% therefore files it under branch J as an application_method, since the contribution is assembling existing PU
+% machinery into a specific biomedical pipeline rather than proposing a new PU mechanism.
+\end{document}

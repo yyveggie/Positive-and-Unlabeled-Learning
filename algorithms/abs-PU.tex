@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{aPU learning: PURR and the two-step PU2wUU / PU2aPNU} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Labeled-positive set $X_{p}$ (drawn from the \emph{train} positive distribution);
+	    unlabeled sets $X_{\mathrm{tr\text{-}u}},X_{\mathrm{te\text{-}u}}$;
+	    priors $\pi_{\mathrm{tr}}\in[0,1)$, $\pi_{\mathrm{te}}$; loss $\ell$; model $g_{\theta}$
+	    \ENSURE
+	    Classifier $g_{\theta}$ for the test distribution
+	    \STATE \textbf{Setting:} the positive distribution may shift arbitrarily between train and test;
+	    the negative distribution is assumed unchanged % an unchanged negative distribution is the weakest assumption that still identifies the problem
+	    \\\hrulefill
+	    \STATE \textbf{Option A: PURR (single joint risk estimator)}
+	    \STATE For $\hat{y}\in\{+1,-1\}$ estimate the test negative risk by recursive decomposition:
+	    \STATE \quad $\hat{R}_{\mathrm{te\text{-}n}}^{\hat{y}}(g)\leftarrow \dfrac{\hat{R}_{\mathrm{tr\text{-}u}}^{\hat{y}}(g)-\pi_{\mathrm{tr}}\hat{R}_{\mathrm{tr\text{-}p}}^{\hat{y}}(g)}{1-\pi_{\mathrm{tr}}}$ % an NU decomposition on the training side recovers the invariant negative risk
+	    \STATE $\hat{R}_{\mathrm{PURR}}(g)\leftarrow \hat{R}_{\mathrm{te\text{-}u}}^{+}(g)-(1-\pi_{\mathrm{te}})\hat{R}_{\mathrm{te\text{-}n}}^{+}(g)+(1-\pi_{\mathrm{te}})\hat{R}_{\mathrm{te\text{-}n}}^{-}(g)$ % a second decomposition on the test side gives a consistent estimate from PU data alone
+	    \STATE Apply absolute-value correction to each bracketed risk, then minimise $\hat{R}_{\mathrm{PURR}}$ by ERM % the absolute-value correction allows standard ERM, whereas non-negative correction weighs four candidate gradients per step
+	    \\\hrulefill
+	    \STATE \textbf{Option B: two-step (PU2wUU / PU2aPNU)}
+	    \STATE Train a probabilistic PU classifier $\hat{\sigma}:\mathbb{R}^{d}\to[0,1]$ from $X_{p}$ and $X_{\mathrm{tr\text{-}u}}$ % the target is the negative posterior p_tr(Y=-1|x) of the training distribution
+	    \STATE Form a surrogate negative set $\widetilde{X}_{n}$ by weighting each $x_{i}\in X_{\mathrm{tr\text{-}u}}$ with $\dfrac{\hat{\sigma}(x_{i})}{1-\pi_{\mathrm{tr}}}$ % soft weighting rather than hard selection
+	    \STATE Train $g_{\theta}$ by ERM on $\hat{R}_{\mathrm{wUU}}(g)$ or $\hat{R}_{\mathrm{aPNU}}(g)$ using $\widetilde{X}_{n}$, $X_{\mathrm{te\text{-}u}}$ and $X_{p}$
+		\RETURN $g_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% Hammoudeh and Lowd, NeurIPS 2020 (Algorithm 1 and equations (12) to (14) of the original).
+% The aPU setting: the positive distribution may shift arbitrarily between training and test while the negative one
+% stays fixed. That single assumption suffices for identification. PURR is the consistent estimator obtained by
+% decomposing the risk twice, first recovering the negative risk on the training side and then substituting into the
+% test side. Theorem 3 gives the consistency conditions and notes that with disjoint supports it can fall behind a
+% two-step method, because the triple risk decomposition makes optimization harder.
+\end{document}

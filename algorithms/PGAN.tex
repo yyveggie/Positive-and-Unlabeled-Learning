@@ -1,0 +1,47 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PGAN: learning a binary classifier from a PU dataset with a GAN}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Positive set $P$; unlabeled set $U$ (mixture of positives and negatives);
+	    noise prior $p_{z}(z)$; batch size $m$
+	    \ENSURE
+	    Binary classifier $D_{B}$
+	    \STATE \textbf{Stage 1: adversarial training on the unlabeled set}
+	    \FOR{each GAN epoch, each batch}
+	    \STATE Sample $\{x_{U}^{(i)}\}_{i=1}^{m}\sim p(x_{U})$ and $\{z^{(i)}\}_{i=1}^{m}\sim p_{z}$;
+	    set $x_{F}^{(i)}=G(z^{(i)})$
+	    \STATE Update $D_{U}$ by minimising
+	    $-\frac{1}{m}\sum_{i}\left[\log D_{U}(x_{U}^{(i)})+\log\!\left(1-D_{U}(x_{F}^{(i)})\right)\right]$
+	    \STATE Update $G$ by minimising
+	    $-\frac{1}{m}\sum_{i}\log D_{U}(G(z^{(i)}))$ % the generator competes with the unlabeled set only and never sees P
+	    \ENDFOR
+	    \STATE Freeze $G$
+	    \STATE \textbf{Stage 2: train the classifier with generated counter-examples}
+	    \FOR{each classifier epoch, each batch}
+	    \STATE Sample $\{x_{P}^{(i)}\}\sim p(x_{P})$ labelled $1$, and
+	    $x_{F}^{(i)}=G(z^{(i)})$ labelled $0$ % generated samples stand in as negatives, which sidesteps selecting negatives from U
+	    \STATE Update $D_{B}$ by minimising
+	    $-\frac{1}{m}\sum_{i}\left[\log D_{B}(x_{P}^{(i)})[1]+\log D_{B}(x_{F}^{(i)})[0]\right]$
+	    \ENDFOR
+		\RETURN $D_{B}$;\quad predict by $\arg\max D_{B}(x)$
+	\end{algorithmic}
+\end{algorithm}
+% Chiaroni, Rahal, Hueber, Dufaux, ICIP 2018, "Learning with a Generative Adversarial
+% Network from a Positive Unlabeled Dataset for Image Classification".
+% Position: rather than selecting reliable negatives from U, the method generates negative substitutes with a GAN,
+% which is why the survey files it under branch G, generative and distribution learning, rather than branch A.
+%
+% Point needing verification: this pseudocode was written from secondary material, in which lines 3 to 5 describe G as
+% competing against the whole unlabeled set. But U is a mixture of both classes, so if G converges to that mixture the
+% generated samples must contain positives, and using them as negatives on line 10 introduces a systematic bias.
+% The group's later work, titled "Generating Relevant Counter-Examples from a Positive Unlabeled Dataset", indicates
+% that the generation target should be the negative component of U rather than the whole mixture.
+% How the original achieves this, whether by early stopping, by subtracting distributions using P, or through another
+% loss, is not stated in the material at hand and must be checked against the original. It decides whether the method holds.
+\end{document}

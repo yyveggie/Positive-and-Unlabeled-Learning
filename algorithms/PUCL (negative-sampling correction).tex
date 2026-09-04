@@ -1,0 +1,52 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PUCL (contrastive learning with negative sampling correction)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Data $\mathcal{X}$; encoder $f$; augmentation $T(\cdot,\epsilon)$;
+	    number of sampled ``negatives'' $N$; labeling parameters $\alpha,\alpha_{c}$
+	    \ENSURE
+	    Encoder $f$
+	    \STATE \textbf{Observation:} a ``negative'' pair $(x,x^{-})$ in standard contrastive learning is
+	    really an \emph{unlabeled} pair $(x,x^{u})$ % the negative pool holds semantically identical samples, which is the PU structure
+	    \STATE \quad Ideal loss (inaccessible): \
+	    $\mathcal{L}_{IdealCL}$ uses $\{x_{i}^{-}\}_{i=1}^{N}\sim p_{x}^{-}$
+	    \STATE \quad Standard loss (biased): \
+	    $\mathcal{L}_{staCL}=\mathbb{E}\left[-\log\dfrac{h(x,x^{+})}{h(x,x^{+})+V^{u}}\right]$,\quad
+	    $V^{u}=\sum_{i=1}^{N}h(x,x_{i}^{u})$ % treating unlabeled data as negative introduces a sampling bias that cannot be ignored
+	    \STATE \textbf{Step 1: represent the negative distribution via PU quantities}
+	    \STATE \quad $p_{x}^{-}(x')=\dfrac{1-\alpha_{c}}{1-\alpha}p_{x}^{u}(x')-\dfrac{\alpha}{1-\alpha}p_{x}^{+}(x')
+	    +\dfrac{\alpha_{c}}{1-\alpha}p_{x}^{l}(x')$ % under a single training set the negative distribution is a linear combination of the available ones
+	    \STATE \textbf{Step 2: form the debiased loss}
+	    \STATE \quad $\mu_{x}=\mathbb{E}_{x^{-}\sim p^{-}}\!\left[h(x,x^{-})\right]
+	    =\dfrac{1-\alpha_{c}}{1-\alpha}\,\mathbb{E}_{x^{-}\sim p^{u}}\!\left[h(x,x^{-})\right]$ % estimable from unlabeled samples alone, with no true negatives required
+	    \STATE \quad $\mathcal{L}_{DeCL}=\mathbb{E}_{x\sim p,\,x^{+}\sim p_{x}^{+}}
+	    \left[-\log\dfrac{h(x,x^{+})}{h(x,x^{+})+N\mu_{x}}\right]$
+	    \STATE \quad \emph{Theorem 1:} $\left|\mathcal{L}_{IdealCL}-\mathcal{L}_{DeCL}\right|\leq
+	    \dfrac{1}{2\sqrt{N}}(e^{2}-1)$ % the gap from the ideal loss closes as 1/sqrt(N) in the number of negatives
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample a mini-batch; build $x^{+}=T(x,\epsilon)$ and $N$ unlabeled counterparts
+	    $\{x_{i}^{u}\}_{i=1}^{N}$
+	    \STATE $h(x,x')\leftarrow e^{f(x)^{\top}f(x')}$;\quad estimate $\mu_{x}$ from $\{x_{i}^{u}\}$
+	    \STATE Update $f$ by minimising $\mathcal{L}_{DeCL}$
+	    \ENDWHILE
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+% L. Wang et al., arXiv 2401.08690, "Contrastive Learning with Negative Sampling
+% Correction" (method name PUCL). The original has no numbered algorithm block; compiled from the Method section and
+% equations (2), (4), (5) and (6). The direction is the reverse of others in this group: puCL, AngularPU and NcPU
+% improve PU learning with contrastive learning, whereas PUCL observes that contrastive learning is itself a PU
+% problem. The standard practice treats the other samples in a batch as negatives, but some of them are semantically
+% positive (the original's example: two different dogs in one batch judged a negative pair; two nodes with no observed
+% edge on a graph likewise). The negative pool is therefore an unlabeled pool and the standard loss is biased.
+% Correction: under a single training set, write the negative distribution as a linear combination of the available
+% positive and unlabeled distributions, so mu_x needs only unlabeled samples. This gives the debiased loss L_DeCL,
+% whose deviation from the ideal loss is bounded by (e^2-1)/(2 sqrt(N)) in Theorem 1.
+% Note: the abbreviation closely resembles puCL of Acharya et al. but the works are distinct; keep citations apart.
+\end{document}

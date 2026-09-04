@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{RankSVM: pairwise RSVM based LPU algorithm}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Positive set $P$; unlabeled set $U$;
+	    grid $\bar{\mathbf{C}}=\{C_{min},\dots,10^{-5},10^{-4},10^{-3},\dots,C_{max}\}$;
+	    $N_{f}=5$
+	    \ENSURE
+	    Weight vector $\mathbf{w}$ and threshold $\theta^{\ast}(C^{\ast})$
+	    \STATE Partition $P$ and $U$ into $N_{f}$ partitions
+	    $Q^{(i)}=(P^{(i)},U^{(i)})$, $i=1,\dots,N_{f}$
+	    \FORALL{hyperparameter values $C\in\bar{\mathbf{C}}$}
+	    \STATE Perform $N_{f}$-fold CV with the $\hat{F}$ measure~(6) using the partitions
+	    $\{Q^{(i)}\}$: % no negatives exist under PU, so model selection uses the approximate F-measure
+	    \STATE \quad (a) Solve~(5) using any pairwise RSVM method for each split of the training
+	    set $(P-P^{(i)},\ U-U^{(i)})$ % the aim is to rank positives above unlabeled instances, not to classify directly
+	    \STATE \quad (b) Compute predictions $\tilde{f}^{(i)}(\mathbf{x}_{j})$,
+	    $\{j: j\in Q^{(i)}\}$
+	    \STATE Find the optimal threshold $\theta^{\ast}(C)$ that maximises the average
+	    $\hat{F}$ measure~(6) using the predictions % ranking and threshold are fixed in separate steps and do not constrain each other
+	    \STATE Update the best value $C^{\ast}$ that maximises the average $\hat{F}$ measure
+	    \ENDFOR
+	    \STATE Solve~(5) with the entire dataset $\{P,U\}$ using $C^{\ast}$
+		\RETURN $\mathbf{w}$ and $\theta^{\ast}(C^{\ast})$
+	\end{algorithmic}
+\end{algorithm}
+% Sellamanickam, Garg, Selvaraj, CIKM 2011, "A Pairwise Ranking Based Approach to
+% Learning with Positive and Unlabeled Examples". Transcribed line by line from Algorithm 3.1 of the original.
+% A shift in modelling: PU is treated as a ranking problem rather than a classification one. All that is required is
+% that positives score above unlabeled instances (the pairwise ranking loss, equation 5), and the threshold theta
+% needed for classification is settled separately afterwards.
+% The benefit is decoupling: ranking quality is the responsibility of the RSVM, while the threshold is chosen by the
+% approximate F-measure (equation 6) under cross-validation, and neither constrains the other.
+% This echoes an empirical finding of the survey, that a SAR labeling mechanism affects threshold placement and
+% calibration far more than it affects ranking; the decomposition here shows why treating the two apart is worthwhile.
+% The phrase any pairwise RSVM method indicates the framework is independent of the particular ranking SVM solver.
+\end{document}

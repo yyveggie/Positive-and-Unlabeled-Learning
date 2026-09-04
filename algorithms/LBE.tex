@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{LBE (instance-dependent PU learning with labeling bias estimation)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    The training set $S=\{S_{P};S_{U}\}$; the initial parameters
+	    $\boldsymbol{\theta}_{1}^{init}$ and $\boldsymbol{\theta}_{2}^{init}$;
+	    the parameters in Adam including step size $\tau$ and exponential decay rates
+	    $\rho_{1},\rho_{2}$
+	    \ENSURE
+	    The optimal parameters $\boldsymbol{\theta}_{1}^{\ast}$ for the classifier
+	    $h(\mathbf{x};\boldsymbol{\theta}_{1})$; the optimal parameters
+	    $\boldsymbol{\theta}_{2}^{\ast}$ for estimating $\eta(\mathbf{x};\boldsymbol{\theta}_{2})$
+	    \STATE Initialize $\boldsymbol{\theta}_{1}=\boldsymbol{\theta}_{1}^{init}$ and
+	    $\boldsymbol{\theta}_{2}=\boldsymbol{\theta}_{2}^{init}$
+	    \WHILE{Not Converged}
+	    \STATE \# E-step \emph{(predict the class posterior probability)}
+	    \STATE Compute $\tilde{P}(y_{i})\propto P(s_{i}\mid y_{i},\mathbf{x}_{i})\,P(y_{i}\mid\mathbf{x}_{i})$
+	    for $i=1,\dots,n$ via Eq.~(12) % the two factors come from the labeling model of theta_2 and the classifier of theta_1
+	    \STATE \# M-step \emph{(update model parameters)}
+	    \STATE Call Adam to update $\boldsymbol{\theta}_{1}$ and $\boldsymbol{\theta}_{2}$, where
+	    $\nabla_{\boldsymbol{\theta}_{1}}\mathcal{J}(\boldsymbol{\theta})$ and
+	    $\nabla_{\boldsymbol{\theta}_{2}}\mathcal{J}(\boldsymbol{\theta})$ are computed via
+	    Eq.~(17) and Eq.~(18) if \emph{LBE-LF}, and via Eq.~(15) and Eq.~(16) if \emph{LBE-MLP} % the two variants differ only in how eta is parameterized: a linear function against a multilayer perceptron
+	    \ENDWHILE
+	    \STATE $\boldsymbol{\theta}_{1}^{\ast}=\boldsymbol{\theta}_{1}$;\quad
+	    $\boldsymbol{\theta}_{2}^{\ast}=\boldsymbol{\theta}_{2}$
+		\RETURN $\boldsymbol{\theta}_{1}^{\ast}$ and $\boldsymbol{\theta}_{2}^{\ast}$
+	\end{algorithmic}
+\end{algorithm}
+% Gong, Wang, Liu, Han, You, Yang, Tao, IEEE TPAMI 2021, 44(8),
+% "Instance-Dependent Positive and Unlabeled Learning With Labeling Bias Estimation".
+% Transcribed line by line from Algorithm 1 of the original.
+% Setting: instance-dependent PU. Whether a positive is labeled depends not only on its class but on the observation
+% itself; the original notes that labeling favours easy or critical data points, so positives far from the decision
+% boundary are more likely to be labeled. Modelling: a graphical model for P(s,y|x) factored as P(s|y,x) times P(y|x),
+% so the two parameter groups each carry one job, theta_1 the classifier h(x) and theta_2 the labeling probability
+% eta(x), maximized jointly on the induced likelihood.
+% Solution: EM. The E step computes the class posterior by equation (12), and the M step updates both groups with Adam.
+% The variants differ only in eta: LBE-LF uses a linear function (gradients in equations (17) and (18)) and LBE-MLP
+% a multilayer perceptron (equations (15) and (16)); the main loop is identical.
+% The explicit forms of equations (12) and (15) to (18) are given in the original.
+\end{document}

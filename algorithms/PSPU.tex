@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PSPU (PU learning with pseudo supervision)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    PU data $D=D_{p}\cup D_{u}$; number of selected samples $n_{s}$;
+	    weight-transfer coefficient $\lambda$; stopping epoch $STOPE$
+	    \ENSURE
+	    Classifiers $g_{pu}$, $g_{ps}$
+	    \STATE $e=0$
+	    \WHILE{$e<STOPE$}
+	    \STATE Select batches $D_{p,i}\subset D_{p}$ and $D_{u,i}\subset D_{u}$
+	    \STATE Update $g_{pu}$ with $\mathcal{L}_{nnPU}(g_{pu},D_{p,i},D_{u,i})$ % first stage: ordinary nnPU
+	    \STATE Obtain classification scores $S_{u}(g,D^{u})$ on $D^{u}$
+	    \STATE Select $n_{s}$ negative samples by $S_{u}(g,D^{u})$ as $D_{(n)}^{u}$ % only the two confident ends are taken; the ambiguous middle is left out
+	    \STATE Select $n_{s}$ positive samples by $S_{u}(g,D^{u})$ as $D_{(p)}^{u}$
+	    \STATE Mix $D_{(n)}^{u}$ and $D_{(p)}^{u}$ to get $D_{ps}$
+	    \STATE Construct $D'=\{D_{p},\,D_{ps},\,D_{(u)}^{u}\}$ % pseudo-supervised set, original positives, and the remaining unlabeled data
+	    \STATE Select batches $D_{p,j}\subset D_{p}$, $D_{ps,j}\subset D_{ps}$, $D_{u,j}\subset D_{(u)}^{u}$
+	    \STATE Update $g_{ps}$ using pseudo-supervised training on $D'$ % second stage: the PU problem becomes semi-supervised learning with pseudo-labels
+	    \STATE $\theta_{g_{pu}}^{(e+1)}\leftarrow \lambda\theta_{g_{pu}}^{(e)}+(1-\lambda)\theta_{g_{ps}}^{(e)}$ % weights flow back, injecting what the pseudo-supervised model learned into the PU model
+	    \STATE $e\leftarrow e+1$
+	    \ENDWHILE
+		\RETURN $g_{pu}$, $g_{ps}$
+	\end{algorithmic}
+\end{algorithm}
+% C. Wang et al., ICME 2024 (arXiv 2407.06698), "PSPU: Enhanced Positive and Unlabeled
+% Learning by Leveraging Pseudo Supervision". Transcribed line by line from Algorithm 1 of the original.
+% Motivation: non-negative risk estimators overfit on imbalanced data. The original reports that the F1 of nnPU falls
+% rapidly to 0, because imbalance drives the model to call every input negative. PSPU corrects this with pseudo supervision.
+% Structure: two classifiers alternate. g_pu follows the nnPU objective and only produces scores, while g_ps trains
+% ordinarily on the pseudo-supervised set. The weight blend on line 12 is their only coupling and is the mechanism the
+% original emphasises for preventing a capability break between the two stages.
+% The original also carries a feature-consistency loss L_con, the KL divergence between two forward passes of the same
+% instance, used to suppress pseudo-label noise; Algorithm 1 does not expand it.
+\end{document}

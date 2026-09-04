@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PU ET (PU extra trees by recursive greedy risk minimization)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\pi=$ class prior; loss $\ell$; $N=$ number of trees; $F=$ attributes tried per node;
+	    $T=$ random cut-points per attribute
+	    \ENSURE
+	    Forest $\mathcal{T}$
+	    \STATE $\mathcal{T}\leftarrow \emptyset$
+	    \FOR{$i=1$ \TO $N$} % the trees are independent, so no data is shared between processes
+	    \STATE Initialise root $\kappa_{i}$; $T_{i}\leftarrow \textsc{ConstructSubtree}(\kappa_{i},P,U,F,T)$
+	    \STATE $\mathcal{T}\leftarrow \mathcal{T}\cup\{T_{i}\}$
+	    \ENDFOR
+	    \RETURN $\mathcal{T}$
+	    \\\hrulefill
+	    \STATE \textbf{function} \textsc{ConstructSubtree}$(\kappa,P',U',F,T)$
+	    \IF{termination criterion is met at $\kappa$}
+	    \STATE $v_{P',U'}^{\ast}\leftarrow \arg\min_{v\in\{-1,+1\}}\hat{R}_{\mathrm{nnPU}}(v;P',U')$ % a leaf predicts a constant, so the nnPU risk at that node is minimized directly
+	    \ELSE
+	    \STATE $(f,t)\leftarrow \textsc{FindSplit}(\kappa,F,T)$
+	    \STATE Split $P',U'$ into $P'_{f>t},P'_{f\leq t},U'_{f>t},U'_{f\leq t}$
+	    \STATE $T_{\kappa_{f>t}}\leftarrow \textsc{ConstructSubtree}(\kappa_{f>t},P'_{f>t},U'_{f>t},F,T)$
+	    \STATE $T_{\kappa_{f\leq t}}\leftarrow \textsc{ConstructSubtree}(\kappa_{f\leq t},P'_{f\leq t},U'_{f\leq t},F,T)$
+	    \ENDIF
+	    \RETURN $T_{\kappa}$
+	    \\\hrulefill
+	    \STATE \textbf{function} \textsc{FindSplit}$(\kappa,F,T)$
+	    \STATE $S\leftarrow \emptyset$; select $F$ attributes uniformly at random among those non-constant at $\kappa$
+	    \FORALL{selected attributes $f$}
+	    \FOR{$i=1$ \TO $T$}
+	    \STATE Sample cut-point $t$ uniformly from the range of $f$ at $\kappa$; $S\leftarrow S\cup\{(f,t)\}$ % the Extra Trees randomization: the cut point is drawn at random rather than searched exhaustively
+	    \ENDFOR
+	    \ENDFOR
+	    \RETURN $(f,t)\in S$ maximising the PU risk reduction
+	    $\hat{R}^{\ast}(P',U')-\hat{R}^{\ast}(P'_{f>t},U'_{f>t})-\hat{R}^{\ast}(P'_{f\leq t},U'_{f\leq t})$
+	\end{algorithmic}
+\end{algorithm}
+% Wilton et al., NeurIPS 2022 (Algorithms 3, 4 and 5 of the original).
+% Key substitution: the impurity decrease of a fully supervised decision tree is replaced by a PU risk decrease.
+% Theorem 1 of the original shows that the Gini and entropy decreases are scalings of the risk decrease under the
+% squared and logistic losses, so a standard decision tree is already recursive greedy risk minimization; the PU
+%   R_uPU(v;P',U') = sum_{P'} w_p l(v,+1) - sum_{P'} w_p l(v,-1) + sum_{U'} w_u l(v,-1)
+% version only swaps in uPU or nnPU. R*(P',U') is the minimum empirical risk under a constant prediction at that node
+% and has a closed form, so splits are cheap to evaluate.
+\end{document}

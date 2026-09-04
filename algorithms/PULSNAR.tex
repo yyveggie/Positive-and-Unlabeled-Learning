@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PULSNAR (class-proportion estimation under SNAR)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Data $X$; label indicator $Y\in\{0,1\}$; classifier (e.g. XGBoost);
+	    clustering method (e.g. GMM); maximum clusters $K_{\max}$;
+	    number of iterations $n_{it}$; calibration method
+	    \ENSURE
+	    Estimated positive fraction $\hat{\alpha}$; calibrated probabilities
+	    \STATE \textbf{Setting:} SNAR --- positives are \emph{selected non-at-random}, so the
+	    labeled positives are not representative of the positive class % a weaker assumption than SAR: different positive subgroups are labeled at different rates
+	    \IF{SCAR is assumed}
+	    \STATE \textbf{PULSCAR branch}
+	    \FOR{$itr=1$ \TO $n_{it}$}
+	    \STATE Shuffle $(X,Y)$; train the classifier and estimate $\hat{\alpha}$ from the
+	    predicted-probability histogram % a single estimate has high variance, so several rounds are pooled
+	    \ENDFOR
+	    \ELSE
+	    \STATE \textbf{PULSNAR branch}
+	    \STATE Find important features using all data % clustering on important features rather than all of them reduces dimensional noise
+	    \STATE Divide the data into positive and unlabeled sets
+	    \STATE Cluster the \emph{labeled positives} into $k$ clusters;
+	    if $k$ is not given, select it by BIC over $2..K_{\max}$ % the central assumption: positives form subgroups, and SNAR shows up as differing labeling rates across them
+	    \FOR{each positive cluster $j=1,\dots,k$}
+	    \STATE Treat cluster $j$ against the unlabeled set as a \emph{sub-problem} satisfying SCAR
+	    \STATE Estimate the sub-proportion $\hat{\alpha}_{j}$ by the PULSCAR procedure % SCAR holds approximately inside a subgroup, so a SCAR method applies there
+	    \ENDFOR
+	    \STATE $\hat{\alpha}\leftarrow \sum_{j=1}^{k}\hat{\alpha}_{j}$ % summing the subgroup proportions recovers the overall positive proportion
+	    \ENDIF
+	    \STATE \textbf{Probability calibration} (optional): map the classifier's scores using
+	    $\hat{\alpha}$, e.g. by isotonic regression % the output probabilities of a PU classifier are systematically low and need calibrating against the estimated alpha
+		\RETURN $\hat{\alpha}$, calibrated probabilities, performance metrics
+	\end{algorithmic}
+\end{algorithm}
+% Kumar & Lambert, PeerJ Computer Science 2024, "PULSNAR --- Positive unlabeled learning
+% selected not at random". Compiled from the main flow of the authors' released implementation
+% (scar_data_processing / snar_data_processing in PULSNAR/PULSNAR.py,
+% AlphaEstimate.py, ProbabilityCalibration.py).
+% Difference between SNAR and SAR: SAR assumes the labeling probability is a function e(x) of the instance, whereas
+% SNAR goes further and holds that the positive class is composed of heterogeneous subgroups labeled at different
+% rates. Medicine is the typical case, where subtypes of one disease differ widely in how often they are recorded.
+% The key step is divide and conquer: cluster the positives into k subgroups, within each of which SCAR holds
+% approximately, apply the SCAR proportion estimator (PULSCAR) there, and sum the k sub-proportions.
+% In this project PULSNAR is recorded only as provenance for the SNAR direction and enters no numerical result.
+\end{document}

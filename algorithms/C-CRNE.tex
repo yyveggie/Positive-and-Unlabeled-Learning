@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{C-CRNE: clustering-based method for collecting reliable negative examples}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    $P$: positive document set;\quad $U$: unlabeled document set
+	    \ENSURE
+	    $RN$: reliable negative document set
+	    \STATE Assume the positive example set be $X=\{x_{1},x_{2},\dots,x_{m}\}$, $x_{i}\in P$
+	    \STATE $O_{P}\leftarrow \dfrac{\sum_{i=1}^{m}x_{i}}{m}$,\quad
+	    $r\leftarrow \max_{x_{k}\in P}d(x_{k},O_{P})$,\quad
+	    $r_{P}\leftarrow \dfrac{r\times\varphi(m)}{\varphi(m)+1}$ % r is the overall positive-class radius; r_P is the tightened radius used for clustering
+	    \STATE $C_{1}\leftarrow \{x_{1}\}$,\ $O_{1}\leftarrow x_{1}$,\
+	    $numCluster\leftarrow 1$,\ $Z\leftarrow \{x_{2},x_{3},\dots,x_{m}\}$,\ $n_{j}\leftarrow 0$
+	    \REPEAT
+	    \STATE Select one $x_{i}\in Z$ and find the closest $O_{j}$ to $x_{i}$:\quad
+	    $O_{j}\leftarrow \arg\min_{j}^{numCluster}{}_{k=1}\ d(x_{i},O_{k})$
+	    \IF{$d(x_{i},O_{j})<r_{P}$}
+	    \STATE Add $x_{i}$ to class $c_{j}$ and adjust the center of class $j$:
+	    \STATE \quad $O_{j}\leftarrow \dfrac{n_{j}\cdot O_{j}+x_{i}}{n_{j}+1}$\quad and\quad
+	    $n_{j}\leftarrow n_{j}+1$ % incremental centroid update, no recomputation needed
+	    \ELSE
+	    \STATE Add a new class $C_{numCluster}\leftarrow \{x_{i}\}$,\quad
+	    $numCluster\leftarrow numCluster+1$,\quad $O_{numCluster}\leftarrow x_{i}$ % the cluster count is not preset; r_P determines it
+	    \ENDIF
+	    \UNTIL{$Z$ is empty}
+	    \STATE $RN\leftarrow U$ % start by treating the whole of U as the candidate negative set
+	    \FOR{$I\leftarrow 1$ \TO $numCluster$}
+	    \FORALL{$x_{i}\in RN$}
+	    \IF{$d(x_{i},O_{i})<r$}
+	    \STATE $RN\leftarrow RN-\{x\}$ % anything inside the radius of a positive cluster is removed; what remains is reliable
+	    \ENDIF
+	    \ENDFOR
+	    \ENDFOR
+		\RETURN $RN$
+	\end{algorithmic}
+\end{algorithm}
+% Liu, Lu et al., Journal of Information Science and Engineering, 2014,
+% "Clustering-based Method for Positive and Unlabeled Text Categorization Enhanced by
+% Improved TFIDF". Transcribed line by line from Algorithm 1 of the original.
+% Notation as defined in the original: phi(m) = lg(m) + 1; numCluster is the number of clusters generated so far;
+% m is the total number of documents being clustered; C_1, ..., C_numCluster are the final clusters;
+% O_j is the centre of cluster C_j and n_j its cardinality.
+% Method: run a single-pass clustering over the positives alone, with the cluster count set by the tightened radius r_P
+% rather than fixed in advance, which yields several positive-class prototypes. Any document of U falling within radius
+% r of a prototype is then removed, and the remainder is the reliable negative set. Unlike Roc-SVM and its relatives,
+% which use a single centroid, the multi-cluster structure accommodates a positive class that is itself multimodal.
+% Note: line 16 of the original writes d(x_i, O_i) while the outer loop variable is I, and line 17 writes RN - {x}
+% rather than RN - {x_i}. Both are transcribed as printed, without correction.
+\end{document}

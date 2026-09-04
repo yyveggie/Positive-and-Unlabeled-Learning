@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PE-PUC} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\sigma=$ affinity matrix parameter; $\lambda=$ the percentage of $R$ which will be extracted as positive samples 
+	    \ENSURE
+	    Classifier $f$ \\
+		\STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+		\STATE $NB-C\leftarrow$ Generate a naïve bayesian classifier$(P,U)$
+		\STATE Classify $U$ using $NB-C$
+		\STATE Let the set of samples in $U$ that are classified as negative be $RN$
+		\STATE Let the set of samples in $U$ that are classified as positive be $R$
+        \STATE $RP\leftarrow \emptyset$
+        \STATE Let the number of samples in $R$ be $n$
+        \STATE Let the number of samples in $P$ be $m$
+        \STATE Randomly select $l$ samples from $P$ and put them in $PL$
+        \FOR{$x_i\in m+n$}
+        \FOR{$x_j\in m+n$}
+        \IF{$i\not=j$}
+        \STATE $W_{ij}\leftarrow \exp \left[-\left\|x_{i}-x_{j}\right\|^{2} / 2 \sigma^{2}\right]$
+        \ELSE
+        \STATE $W_{ii}\leftarrow 0$
+        \ENDIF
+        \ENDFOR
+        \ENDFOR
+        \STATE Symmetrically normalize $W$ by $S\leftarrow D^{1/2} W D^{1/2}$, $D$ is the diagonal matrix with $(i,i)$-element equal to the sum of the $i$th row of $W$
+        \STATE $f^{*}\leftarrow (1-\alpha)(1-\alpha S)^{-1}y$, $\alpha\in (0,1)$, Rank each sample $x_i,i\in [l+1,l+n]$ according to the ranking score in $f^*$(largest ranked first)
+        \STATE $RP\leftarrow$ the top ranked documents in $R(\left|RP\right|\leftarrow \lceil \lambda \times \left|R\right| \rceil)$
+        \STATE $P^{'}\leftarrow P\cup RP, U^{'}\leftarrow U-RP$
+        \STATE $C\leftarrow$ Generate a classifier$(P^{'},U^{'})$
+        \STATE Classify $U^{'}$ using $C$
+        \STATE Let the set of samples in $U^{'}$ that are classified as negative be $RN^{'}$
+        \STATE $f\leftarrow$ Generate a naïve bayesian classifier$(P^{'},RN^{'},U^{'}-RN^{'})$
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  
+

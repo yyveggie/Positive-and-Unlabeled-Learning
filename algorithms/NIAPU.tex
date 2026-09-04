@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{NIAPU: network-informed adaptive PU learning for disease gene identification}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    PPI network $G=(V,E)$ with adjacency $A$ and degree matrix $K$;
+	    seed gene set $P$ with confidence scores $S$;
+	    pruning quantile $q_{w}$; $|RN|$ (typically $|P|$); restart probability $\alpha$;
+	    tolerance $\epsilon$
+	    \ENSURE
+	    Trained multi-class model and a ranked list of candidate disease genes
+	    \STATE \textbf{Phase 1: NeDBIT features} --- four per gene,
+	    $\mathbf{x}_{i}=[\,z_{i}(t),\ z_{b,i}(t),\ NS_{i},\ r_{i}\,]^{\top}$
+	    \STATE \quad $\mathbf{z}(t)=\exp(-Lt)\mathbf{z}(0)$ with $L=K-A$ and
+	    $z_{i}(0)=s_{i}$ on seeds, $0$ elsewhere % heat diffusion: seed-gene confidence propagates along the network
+	    \STATE \quad $\mathbf{z}_{b}(t)=\exp(-L_{b}t)\mathbf{z}(0)$ with $L_{b}=I-K^{-1}A$ % balanced diffusion, which stops high-degree nodes from dominating
+	    \STATE \quad $NS_{i}=\sum_{j\neq i}1/d_{ij}$ on edges reweighted by the seed scores
+	    \STATE \quad $r_{i}$ (NetRing): partition $V$ into rings by unweighted distance to $P$,
+	    then propagate ring-wise % introduced by this paper; it captures a node's hierarchical position relative to the seed set
+	    \STATE \textbf{Phase 2: APU multi-class pseudo-labelling}
+	    \STATE Build $W$ from feature distances (min--max normalised); keep entries above the
+	    $q_{w}$ quantile; row-normalise to $W_{n}=D^{-1}W_{r}$ % the similarity is defined in feature space, not on the network adjacency
+	    \STATE $RN\leftarrow$ the $|RN|$ non-seed genes \emph{farthest} from the seed feature mean
+	    $\bar{x}$
+	    \STATE $g_{0}[i]\leftarrow 1$ on $P$;\quad $-|P|/|RN|$ on $RN$;\quad $0$ otherwise
+	    \hfill \emph{(so that $g_{0}$ sums to zero)} % the positive and negative ends are equal in mass, so the diffusion does not drift overall
+	    \REPEAT
+	    \STATE $g_{r}\leftarrow (1-\alpha)W_{n}^{\top}g_{r}+\alpha g_{0}$
+	    \hfill \emph{Markov diffusion with restart}
+	    \UNTIL{$\|g_{r}-g_{r}^{\mathrm{prev}}\|_{1}<\epsilon$}
+	    \STATE Sort the unlabeled genes by the stationary score and split into three equal parts:
+	    $LP$ (likely positive), $WN$ (weakly negative), $LN$ (likely negative)
+	    \STATE \textbf{Phase 3:} train a multi-class classifier (random forest or MLP) on the five
+	    labels $\{P,LP,WN,LN,RN\}$; rank candidates by the predicted $LP$ probability % five labels rather than two, which is what adaptive refers to
+		\RETURN the model and the ranked candidate list
+	\end{algorithmic}
+\end{algorithm}
+% Stolfi, Mastropietro et al., Bioinformatics 2023, "NIAPU: Network-Informed Adaptive
+% Positive-Unlabeled Learning for Disease Gene Identification".
+% The difference from an ordinary two-step method is on line 14: unlabeled genes are not split into reliable negatives
+% and the rest, but cut by diffusion score into LP, WN and LN, which together with P and RN form five labels handed
+% to a multiclass classifier. The reason is that disease-gene association is itself a matter of degree, and a forced
+% binary split conflates insufficient evidence with confirmed irrelevance.
+% Two uses of network information must be kept apart:
+% (1) all four features of Phase 1 are computed from the PPI network structure, by diffusion and topology;
+% (2) the similarity matrix W of Phase 2 is defined in feature space rather than on the network adjacency, so the
+%     diffusion runs over a feature-similarity graph and not over the original PPI graph.
+% NetRing is introduced here: it partitions nodes into concentric rings by shortest path to the seed set, then
+% recurses ring by ring.
+\end{document}

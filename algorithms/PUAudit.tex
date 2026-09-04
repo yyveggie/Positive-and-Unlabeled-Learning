@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PUAudit (auditing LLM-as-a-judge via PU learning and partial OT)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Reward encoder $F_{\theta}$; transport fraction $m\in(0,1]$; threshold $\tau\in[0,1]$;
+	    pairwise dataset
+	    $\mathcal{D}=\{(x_{i},o_{i}^{A},o_{i}^{B},\zeta_{i}^{(H)},\zeta_{i}^{(\mathrm{LLM})})\}_{i=1}^{N}$
+	    \ENSURE
+	    Corrected labels $\{\tilde{\zeta}_{j}^{(\mathrm{LLM})}\}_{j\in\mathcal{D}_{U}}$ and scores
+	    \STATE \textbf{PU framing:} human-verified pairs are \emph{reliable positives}
+	    $\mathcal{D}_{P}$; the unverified pool $\mathcal{D}_{U}$ is a heterogeneous mixture % human annotation covers a small part only; the rest is unverified, not negative
+	    \STATE Recall the PU partition $(\mathcal{D}_{P},\mathcal{D}_{U})$ and the chosen side $c_{i}$
+	    \FOR{each pair $i\in\mathcal{D}_{P}\cup\mathcal{D}_{U}$}
+	    \STATE $e_{i}^{A}\leftarrow F_{\theta}(x_{i},o_{i}^{A})$,\quad
+	    $e_{i}^{B}\leftarrow F_{\theta}(x_{i},o_{i}^{B})$
+	    \STATE Compute the difference embedding $z_{i}\leftarrow \phi(e_{i}^{A},e_{i}^{B})$ % a directed win-loss difference vector, so ties are excluded
+	    \ENDFOR
+	    \STATE Denoise the positive group: $\mathcal{D}_{P}'\leftarrow P_{\mathrm{clean}}(\mathcal{D}_{P})$
+	    \STATE Construct empirical measures $(\mu_{P}',\mu_{U})$ using the embeddings $\{z_{i}\}$
+	    \STATE Compute the OT coupling $\Gamma^{\star}$ with transport fraction $m$ % partial optimal transport: only part of the mass of U is moved onto the reliable positives
+	    \FOR{each $j\in\mathcal{D}_{U}$}
+	    \STATE Compute the normalized score $\bar{s}_{j}\leftarrow \mathrm{Score}(\Gamma^{\star},j)$
+	    \ENDFOR
+	    \FOR{each $j\in\mathcal{D}_{U}$}
+	    \IF{$\bar{s}_{j}<\eta$}
+	    \STATE $\tilde{\zeta}_{j}^{(\mathrm{LLM})}\leftarrow \mathrm{Flip}(\zeta_{j}^{(\mathrm{LLM})})$ % judgments inconsistent with human preference are flipped rather than the model retrained
+	    \ELSE
+	    \STATE $\tilde{\zeta}_{j}^{(\mathrm{LLM})}\leftarrow \zeta_{j}^{(\mathrm{LLM})}$
+	    \ENDIF
+	    \ENDFOR
+		\RETURN corrected labels and scores
+	\end{algorithmic}
+\end{algorithm}
+% Z. Zhang, Y.-T. Hung, L. Ding, C.-K. Yeh, arXiv 2606.19057, "Quantifying and Auditing
+% LLM Evaluation via Positive-Unlabeled Learning" (method name PUAudit).
+% Transcribed line by line from Algorithm 1 of the original (Appendix B.5).
+% Problem: LLM-as-a-judge has become a mainstream evaluation instrument, but the judge carries systematic bias and can
+% overturn the answer a human preferred. Human verification covers only a small share of the samples, which is
+% structurally PU: the verified items are reliable positives and the unverified pool a heterogeneous mixture.
+% Two pieces are joined:
+% (1) in a fixed embedding space, the preference A over B is represented by a directed difference vector;
+% (2) partial optimal transport aligns the reliable positives with the unlabeled pool. It is partial because only some
+%     of that pool agrees with human preference, so not all of it should be transported (the same tool as the
+%     partial OT of Chapel et al. under adaptive selection, used for a different purpose).
+% Key property: the correction acts at the label level, by flipping inconsistent judgments, and requires no retraining
+% of the judge or the underlying model.
+% The survey files it under branch J as an application_method.
+\end{document}

@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PUAE (deep PU anomaly detection for contaminated unlabeled data)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Unlabeled set $\{x_{n}\}_{n=1}^{N}$ (contaminated with anomalies);
+	    labeled anomaly set $\{\tilde{x}_{m}\}_{m=1}^{M}$;
+	    autoencoder $E_{\theta},D_{\theta}$; anomaly ratio $\pi$
+	    \ENSURE
+	    Anomaly detector $\theta$
+	    \STATE \textbf{Convention:} normal data are the negative class ($y=0$),
+	    anomalies are the positive class ($y=1$) % the reverse of ordinary PU: what is labeled are the anomalies
+	    \STATE Reconstruction error $\ell(x;\theta)=\|x-D_{\theta}(E_{\theta}(x))\|^{2}$
+	    \STATE \textbf{Turn the error into a probability:}
+	    \STATE \quad $p_{\theta}(y\mid x)=\begin{cases}
+	    \exp(-\ell(x;\theta)) & y=0\\
+	    1-\exp(-\ell(x;\theta)) & y=1\end{cases}$ % a small reconstruction error means a high probability of being normal
+	    \STATE \quad $\ell_{BCE}(x,y;\theta)=(1-y)\,\ell(x;\theta)-y\log\!\left(1-e^{-\ell(x;\theta)}\right)$ % both terms are bounded below, so maximizing the reconstruction error cannot diverge
+	    \STATE \textbf{Baseline (ABC)} assumes all unlabeled points are normal:
+	    \STATE \quad $\mathcal{L}_{ABC}(\theta)=\dfrac{1}{N}\sum_{n}\ell_{BCE}(x_{n},0;\theta)
+	    +\dfrac{1}{M}\sum_{m}\ell_{BCE}(\tilde{x}_{m},1;\theta)$
+	    \STATE \textbf{PU correction:} the unlabeled set is contaminated, so rewrite the normal-data
+	    term through the mixture identity and form an unbiased PU risk % the PU risk replaces the assumption that U is entirely normal
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample batches from the unlabeled and the labeled-anomaly sets
+	    \STATE Update $\theta$ on the PU-corrected objective
+	    \ENDWHILE
+	    \STATE \emph{The same construction applies to Deep SVDD, giving PUSVDD} % the method is independent of the anomaly-detection backbone
+		\RETURN $\theta$
+	\end{algorithmic}
+\end{algorithm}
+% Takahashi, Iwata, Kumagai, Yamanaka, Yamashita, arXiv 2024, "Deep Positive-Unlabeled
+% Anomaly Detection for Contaminated Unlabeled Data". Compiled from Section 3 and equations (3), (4) and (5).
+% The same idea appears twice in this group's work, here and in the PU diffusion model of the following year (ICLR
+% 2025): an unbounded quantity such as a reconstruction error or ELBO is first turned into a bounded BCE form
+% (equation 4), and the PU risk correction is then applied. The key design matches that paper: maximizing the
+% reconstruction error of anomalies directly would diverge, whereas -log(1 - exp(-l)) bounds both terms below and
+% balances them without an extra hyperparameter. Backbone independence: the paper instantiates both an autoencoder
+% (PUAE) and Deep SVDD (PUSVDD).
+\end{document}

@@ -1,0 +1,23 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{NB-SVM} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$
+	    \ENSURE
+	    Classifier $f$ \\
+		\STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+		\STATE $nb\leftarrow$ Generate a naive bayesian classifier$(P,U)$
+		\STATE Classify $U$ using $nb$
+		\STATE Let the set of samples in $U$ that are classified as negative be $RN$
+        \STATE $f\leftarrow$ Generate a classifier$(P,RN)$
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

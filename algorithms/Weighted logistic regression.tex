@@ -1,0 +1,24 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Weighted\_LR} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P,U$
+	    \ENSURE
+	    Classifier $f$ \\
+		\STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+		\STATE Let the number of samples in $U$ be $N_U$
+		\STATE Let the number of samples in $P$ be $N_P$
+		\STATE $w^+\leftarrow N_U/(N_U+N_P)$
+		\STATE $w^-\leftarrow 1-W^+$
+		\STATE $f\leftarrow$ Generate a weighted logistic regression classifier$(P,U,w^+,w^-)$
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

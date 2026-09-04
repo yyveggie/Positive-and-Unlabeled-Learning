@@ -1,0 +1,53 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PE direct estimator: class prior via Pearson-divergence partial matching}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Unlabeled set $X=\{x_{i}\}_{i=1}^{n}$; labeled positive set $X'=\{x_{j}'\}_{j=1}^{n'}$;
+	    candidate grids $\Sigma$ for the Gaussian width and $\Lambda$ for the regulariser
+	    \ENSURE
+	    Class-prior estimate $\hat{\theta}$
+	    \STATE \textbf{Model:} approximate the density ratio by
+	    $\hat{r}(x)=\alpha^{\top}\phi(x)$ with Gaussian bases
+	    $\phi_{i}(x)=\exp\!\left(-\|x-x_{i}\|^{2}/2\sigma^{2}\right)$ centred at the samples % models the density ratio directly, avoiding density estimation in high dimension
+	    \STATE \textbf{Part 1: select $(\sigma^{\ast},\lambda^{\ast})$ by 5-fold CV}
+	    \FORALL{$(\sigma,\lambda)\in\Sigma\times\Lambda$}
+	    \FOR{$k=1$ \TO $5$}
+	    \STATE On the training folds form
+	    $H_{tr}=\frac{1}{n_{tr}}\sum_{x}\phi(x)\phi(x)^{\top}$,\quad
+	    $h_{tr}=\frac{1}{n_{tr}'}\sum_{x'}\phi(x')$,\quad
+	    $G_{tr}=H_{tr}+\lambda I$
+	    \STATE $\beta_{tr}\leftarrow G_{tr}^{-1}h_{tr}$
+	    \STATE Score the held-out fold by
+	    $\frac{1}{2}\beta_{tr}^{\top}H_{val}\beta_{tr}-\beta_{tr}^{\top}h_{val}$ % the validation loss of least-squares importance fitting
+	    \ENDFOR
+	    \ENDFOR
+	    \STATE Keep the pair minimising the mean score
+	    \STATE \textbf{Part 2: closed-form estimate}
+	    \STATE $\hat{H}\leftarrow \frac{1}{n}\sum_{i}\phi(x_{i})\phi(x_{i})^{\top}$,\quad
+	    $\hat{h}\leftarrow \frac{1}{n'}\sum_{j}\phi(x_{j}')$,\quad
+	    $\hat{G}\leftarrow \hat{H}+\lambda^{\ast}I$
+	    \STATE $\hat{\beta}\leftarrow \hat{G}^{-1}\hat{h}$
+	    \STATE $\hat{\theta}\leftarrow \left[2\hat{h}^{\top}\hat{\beta}-\hat{\beta}^{\top}\hat{H}\hat{\beta}\right]^{-1}$
+	    \hfill \emph{single-step analytical solution} % obtained by differentiating with respect to theta, with no iteration
+	    \STATE Clip $\hat{\theta}$ to $[0,1]$
+		\RETURN $\hat{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% du Plessis \& Sugiyama, IEICE Transactions on Information and Systems 2014,
+% "Class Prior Estimation from Positive and Unlabeled Data".
+% Idea: write prior estimation as partial matching, fitting theta * p(x|y=1) to the unlabeled marginal p(x), with the
+% goodness of fit measured by the Pearson divergence. Through Fenchel duality the PE divergence estimate becomes an
+% unbiased sample-mean optimization, the coefficients have the closed-form L2-regularized least-squares solution
+% alpha_hat = theta * G^{-1} h, and substituting back and differentiating in theta gives a single-step analytical
+% estimator. The claim against two-step methods such as Elkan-Noto is that no intermediate classifier is involved, so
+%
+% its bias cannot accumulate. Important sequel: Christoffel, Niu and Sugiyama (ACML 2015) extend the analysis to
+% general f-divergences and show that naive partial matching systematically overestimates the class prior, which is
+% corrected only by penalizing the divergence. pen-L1 in this repository is that corrected version; read the two together.
+\end{document}

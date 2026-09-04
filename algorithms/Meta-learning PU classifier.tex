@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Meta-learning for positive-unlabeled classification} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Datasets in source tasks $\mathcal{D}$; positive support-set size $N_{S}^{p}$;
+	    unlabeled support-set size $N_{S}^{u}$; query-set size $N_{Q}$;
+	    regularization constant $\lambda>0$
+	    \ENSURE
+	    Common parameters $\Theta$ shared across all tasks
+	    \WHILE{stopping criterion is not met}
+	    \STATE Randomly sample task $t$ from the source tasks
+	    \STATE Randomly sample $S^{p}$ from positive data $D_{t}^{p}$
+	    \STATE Randomly sample $S^{u}$ from unlabeled data $D_{t}^{u}$;\quad $S\leftarrow S^{p}\cup S^{u}$ % if a task has no unlabeled data, labeled data with its labels hidden can stand in
+	    \STATE Randomly sample query set $Q$ from $(D_{t}^{p}\setminus S^{p})\cup D_{t}^{n}$,
+	    maintaining the positive ratio $\dfrac{|D_{t}^{p}|}{|D_{t}^{p}|+|D_{t}^{n}|}$ % the query set carries true negatives and is used only to compute the risk during meta-training
+	    \STATE Calculate task representations $z^{p}$ and $z^{u}$ from $S^{p}$ and $S^{u}$ by
+	    permutation-invariant neural networks % permutation invariant, so the order of the support set does not matter
+	    \STATE Estimate the density ratio $r(x)$ from $S$ ---
+	    the $\ell_{2}$-regularized objective has the \emph{closed-form} global optimum % the closed form is what makes the method practical: no inner-loop iterative optimization during meta-training
+	    \STATE Estimate the positive class-prior $\pi$ from $S$, obtaining the Bayes optimal
+	    classifier $u^{\ast}(x;S,\Theta)$
+	    \STATE Calculate the test classification risk on the query set,
+	    $\tilde{R}_{pn}(\Theta,Q;S)$
+	    \STATE Update the common parameters $\Theta$ with $\nabla\tilde{R}_{pn}(\Theta,Q;S)$ % the risk is differentiable in Theta, so plain SGD applies
+	    \ENDWHILE
+	    \STATE \textbf{Adaptation:} given a few PU data $S$ from a new task,
+	    obtain its classifier by the closed-form solution alone --- no gradient steps required
+		\RETURN $\Theta$
+	\end{algorithmic}
+\end{algorithm}
+% Kumagai, Iwata, Ushiku, arXiv 2024 (2406.03680), "Meta-learning for Positive-unlabeled
+% Classification". Compiled from Algorithm 1 and the training description in Section 4 of the original.
+% Goal: teach the model how to learn from PU data, so that a new task adapts from a small amount of it.
+% The key design trade-off: adapting on the support set amounts to estimating a Bayes-optimal classifier, and that step
+% is written as l2-regularized density-ratio estimation because the problem then has a closed-form global optimum.
+% This matters: conventional meta-learning optimizes iteratively in the inner loop, at heavy cost in computation and
+% memory (the original cites Bertinetto et al., 2018). The closed form collapses the inner loop to one matrix
+% operation and stays differentiable in Theta, so the outer loop can use stochastic gradient descent directly.
+% Implementation detail: the closed form does not guarantee non-negative weights, and the original compensates for
+% negative ones separately. The query set of meta-training needs true negatives, so the source tasks must be fully
+% supervised; only the new target task is PU.
+\end{document}

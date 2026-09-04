@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Cost-sensitive unbiased risk estimation for multi-class PU learning} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Labeled sets $P_{1},\dots,P_{k-1}$ (one per observed class); unlabeled set $U$;
+	    priors $\pi_{1},\dots,\pi_{k}$; cost matrix $C=[C_{yi}]$;
+	    binary surrogate $\ell$ satisfying the constant-sum identity $\ell(z,+1)+\ell(-z,-1)\equiv C_{0}$;
+	    one-vs-rest model $f=(f_{1},\dots,f_{k})$
+	    \ENSURE
+	    Multi-class classifier $\arg\max_{j}f_{j}(x)$
+	    \STATE \textbf{Per-sample cost-sensitive OVR loss:}
+	    $L(f(x),y)=\ell(f_{y}(x),+1)+\sum_{i\in\mathcal{Y}\setminus\{y\}}C_{yi}\,\ell(f_{i}(x),-1)$ % C_{yi} encodes the cost of predicting i when the true class is y
+	    \STATE \textbf{Composite loss removing the unobserved-negative part:}
+	    $\tilde{L}(f(x),i)=L(f(x),i)-L(f(x),k)$ % subtracting the unlabeled-class term leaves it unbiased in expectation
+	    \STATE \textbf{Adaptive weighting on the unlabeled pool:}
+	    $L_{k}(f(x))=\ell(f_{k}(x),+1)+\ell(f_{i^{\ast}}(x),-1)$, where $i^{\ast}=\arg\max_{j\in\{1,\dots,k-1\}}f_{j}(x)$ % penalizes only the currently strongest positive head, so the term is instance-dependent
+	    \STATE \textbf{Cost-sensitive unbiased risk:}
+	    $R(f)=\sum_{i=1}^{k-1}\pi_{i}\,\mathbb{E}_{x\sim p_{i}}\!\left[\tilde{L}(f(x),i)\right]+\mathbb{E}_{x\sim p_{u}}\!\left[L_{k}(f(x))\right]$
+	    \WHILE{stopping criterion is not met}
+	    \STATE Sample mini-batches $P_{i,b}\subset P_{i}$ for each $i<k$, and $U_{b}\subset U$
+	    \STATE $\hat{R}\leftarrow \sum_{i<k}\dfrac{\pi_{i}}{|P_{i,b}|}\sum_{x\in P_{i,b}}\tilde{L}(f(x),i)
+	    +\dfrac{1}{|U_{b}|}\sum_{x\in U_{b}}L_{k}(f(x))-2(1-\pi_{k})C_{0}$ % the constant does not move the ERM minimizer but keeps the estimator strictly unbiased
+	    \STATE Update $f$ by an SGD-like optimizer on $\nabla\hat{R}$
+	    \ENDWHILE
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+% Zhang et al., arXiv 2025 (2510.25226), "Cost-Sensitive Unbiased Risk Estimation for
+% Multi-Class Positive-Unlabeled Learning". The original gives neither an abbreviation nor a numbered algorithm block;
+% this pseudocode is compiled from the definitions in Section III.B (Cost-Sensitive Risk) and equation (1).
+% Two points:
+% (1) The constant-sum identity l(z,+1) + l(-z,-1) = C0 is the essential premise, and it is what cancels the
+%     unobservable term. Losses the original verifies against it are unhinged (1-z)/2, the sigmoid form
+%     1/(1+e^{gamma z}) and tanh variants; hinge and ramp need symmetrizing first, and logistic softplus fails as given.
+% (2) The adaptive weight takes i* = argmax_j f_j(x), so when the input is in fact negative the strongest positive head
+%     receives the stronger regularization.
+\end{document}

@@ -1,0 +1,53 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PULNS (reinforced negative sample selection)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Positive set $P$; unlabeled set $U$; validation set $V$ (contains a \emph{small} number of
+	    labeled negatives); episode number $L$; reward weight $\alpha$
+	    \ENSURE
+	    Optimized selector $f_{\theta}^{\ast}$; optimized classifier $clf^{\ast}$
+	    \STATE Initialize a classifier $clf$ trained on $P$ and $U$, treating all of $U$ as negative % a biased starting point, corrected by the iterations that follow
+	    \STATE Initialize a selector $f_{\theta}$ randomly
+	    \STATE $f_{\theta}^{\ast}\leftarrow f_{\theta}$;\quad $clf^{\ast}\leftarrow clf$
+	    \FOR{$l\leftarrow 1$ \TO $L$}
+	    \STATE Shuffle the unlabeled sample set $U$
+	    \FOR{step $i\leftarrow 1$ \TO $|U|$}
+	    \STATE Get state $s_{i}$
+	    \STATE Sample action $a_{i}\sim \pi_{\theta}(s_{i},a_{i})$ \quad ($a_{i}=1$: select as negative) % the selector decides instance by instance whether to take it
+	    \STATE Obtain intermediate reward
+	    $r_{i}^{(l)}=\begin{cases}
+	    C\!\left(-1,\ \log\frac{1-p(x_{i})}{p(x_{i})},\ 1\right) & \text{if } a_{i}=1\\[2pt]
+	    C\!\left(-1,\ \log\frac{p(x_{i})}{1-p(x_{i})},\ 1\right) & \text{if } a_{i}=0
+	    \end{cases}$ % C(-1,x,1) is a clipping function; the more negative the classifier leans, the higher the reward for selecting it
+	    \ENDFOR
+	    \STATE Compute terminal reward $r_{u+1}$ from the classifier's performance on $V$ % the terminal reward comes from a validation set, so a few true negatives are needed
+	    \STATE Update selector $f_{\theta}$ based on all rewards:
+	    $\nabla_{\theta}J(\theta)=\sum_{\tau}\nabla_{\theta}P_{\theta}(\tau)\left(\sum_{i=1}^{u}r_{i}+\alpha r_{u+1}\right)$ %REINFORCE
+	    \STATE $f_{\theta}^{\ast}\leftarrow f_{\theta}$
+	    \STATE Get calibrated negative sample set $N$ from $U$ by the updated selector $f_{\theta}^{\ast}$
+	    \STATE Update classifier $clf$ based on $N$ and $P$ % selector and classifier are optimized alternately
+	    \IF{$clf$ performs better than $clf^{\ast}$}
+	    \STATE $clf^{\ast}\leftarrow clf$
+	    \ENDIF
+	    \ENDFOR
+		\RETURN $f_{\theta}^{\ast}$, $clf^{\ast}$
+	\end{algorithmic}
+\end{algorithm}
+% Luo et al., AAAI 2021, "PULNS: Positive-Unlabeled Learning with Effective Negative
+% Sample Selector". Compiled from Algorithm 1 and the intermediate reward definitions of the original.
+% Difference from the classical two-step methods: those select negatives once by a heuristic rule (spies, Rocchio,
+% 1-DNF and so on), whereas PULNS models the choice of negatives as a sequential decision problem, learns a selector
+% by REINFORCE with classifier performance as the reward, and optimizes the two alternately.
+% The reward has two levels:
+% (1) an intermediate reward per instance, which avoids the sparse return of a terminal reward alone;
+% (2) a terminal reward from validation performance. The original notes that using accuracy directly impedes
+%     convergence, so a different form is used. Prerequisite: a validation set holding a few true negatives. The
+% original argues this is practical, since collecting negatives at scale is unrealistic but labelling a few for
+% validation usually is, and per Hsieh et al. (2019) even a biased sample of them still yields a sizable gain.
+\end{document}

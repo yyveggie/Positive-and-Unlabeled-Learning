@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PUL-SITS: PU learning for satellite image time series}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Positive time series $P$; unlabeled set $U$; Huber threshold $\delta$;
+	    consistency weight $\lambda$; epochs $E_{ae},E_{clf}$; batch size $B$
+	    \ENSURE
+	    Trained binary classifier $f_{\theta}$
+	    \STATE \textbf{Stage 1: select reliable negatives}
+	    \STATE Train a variational recurrent autoencoder $VAERNN$ (two-layer GRU)
+	    \emph{on $P$ only}, minimising the Huber reconstruction loss % having seen positives only, it reconstructs them well and everything else poorly
+	    \STATE $E(TS)\leftarrow HLoss\big(TS,\ \mathrm{Linear}(VAERNN(TS))\big)$ for each $TS\in U$
+	    \STATE $\mu_{rec}\leftarrow \frac{1}{|U|}\sum_{TS\in U}E(TS)$;\quad
+	    $U_{\mu}\leftarrow\{TS\in U\mid E(TS)>\mu_{rec}\}$ % a reconstruction error above the mean marks a large difference from the positive class
+	    \STATE $RN\leftarrow$ a random subset of $U_{\mu}$ with $|RN|=|P|$;\quad
+	    $\tilde{U}\leftarrow U\setminus U_{\mu}$ % the low-error remainder becomes the unlabeled pool for consistency regularization
+	    \STATE \textbf{Stage 2: two-model semi-supervised training}
+	    \STATE Initialise identical FCGRU classifiers $f_{\theta}$ (main) and $f_{\hat{\theta}}$ (auxiliary)
+	    \STATE Build reconstructed copies
+	    $\hat{P}=\{\mathrm{Linear}(VAERNN(TS))\}_{TS\in P}$ and $\hat{RN}$ likewise;
+	    label $P,\hat{P}$ as $1$ and $RN,\hat{RN}$ as $0$ % the autoencoder serves a second purpose: producing perturbed versions
+	    \FOR{$epoch=1$ \TO $E_{clf}$}
+	    \FORALL{steps}
+	    \STATE Train $f_{\hat{\theta}}$ by BCE on a batch of the \emph{reconstructed} labelled data
+	    $\hat{B}\subset\hat{P}\cup\hat{RN}$
+	    \STATE Sample $B_{l}\subset P\cup RN$ and $B_{u}\subset\tilde{U}$;
+	    reconstruct $\hat{TS}_{j}$ for each $TS_{j}\in B_{u}$
+	    \STATE Update $f_{\theta}$ on
+	    $\mathcal{L}_{BCE}(B_{l};f_{\theta})
+	    +\lambda\cdot\frac{1}{|B_{u}|}\sum_{j}\mathrm{KL}\!\left(f_{\hat{\theta}}(\hat{TS}_{j})\,\|\,f_{\theta}(TS_{j})\right)$ % the main model sees the original data and the auxiliary model the reconstruction; their predictions should agree
+	    \ENDFOR
+	    \ENDFOR
+		\RETURN $f_{\theta}$
+	\end{algorithmic}
+\end{algorithm}
+% Desloires, Ienco, Botrel, Remote Sensing 2022, "Positive Unlabelled Learning for
+% Satellite Images' Time Series Analysis: An Application to Cereal and Forest Mapping".
+% Task: in remote-sensing mapping only one land-cover class has field samples and every other pixel is unlabeled,
+% which is the classic PU structure. The key design is that the autoencoder does two jobs:
+% (1) it selects reliable negatives. Trained on P alone, it reconstructs positives well and other classes poorly, so
+%     anything with a reconstruction error above the mean is a candidate negative;
+% (2) it generates perturbations. The reconstructed version acts as another view of the same sample for the
+%     consistency regularizer of the second stage.
+% The two halves of the data serve different ends: the high-error half of U (U_mu) supplies RN, while the low-error
+% half (U~) becomes the unlabeled pool for consistency regularization. The latter is likelier to contain true
+% positives, which is exactly the part the consistency constraint is there to exploit. The two models divide the work:
+% the auxiliary trains on reconstructions, the main model on originals, and a KL divergence holds them in agreement.
+\end{document}

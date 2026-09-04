@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{PU data purification in the wild for object detection}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    PU network $N_{pu}$; labeled set $L$; unlabeled set $U$ (massive, from the wild);
+	    class prior $\pi_{p}$ (estimable from $L$ and $U$)
+	    \ENSURE
+	    Teacher detector $D_{t}$; extended dataset $L\cup U^{p}$
+	    \STATE \textbf{Step 1: train the PU classifier $N_{pu}$}
+	    \WHILE{not converged}
+	    \STATE Collect a mini-batch $\{x_{l},x_{u}\}^{N}$ from $L\cup U$
+	    \STATE Optimize $N_{pu}$ with the non-negative PU risk
+	    $\pi_{p}R_{p}^{+}(g)+\max\!\left(0,\ R_{u}^{-}(g)-\pi_{p}R_{p}^{-}(g)\right)$ % the wild unlabeled pool contains positives, hence nnPU
+	    \ENDWHILE
+	    \STATE \textbf{Step 2: construct the selected unlabeled dataset}
+	    \STATE Use $N_{pu}$ to select images from $U$, forming $U^{p}$ % purification: keep the images that genuinely contain the target class
+	    \STATE \textbf{Step 3: generate pseudo labels}
+	    \STATE Train a teacher detector $D_{t}$ on the labeled set $L$
+	    \STATE Generate pseudo labels on $U^{p}$ using $D_{t}$ % with the noisy images removed, the pseudo-labels are good enough to use
+	    \STATE Obtain the extended dataset $L\cup U^{p}$
+	    \STATE \textbf{Step 4: self-distillation}
+	    \STATE Train the student detector with hint learning and
+	    ground-truth-bounded knowledge distillation % the distillation is bounded by ground truth, so the teacher's mistakes are not inherited
+		\RETURN $D_{t}$, $L\cup U^{p}$
+	\end{algorithmic}
+\end{algorithm}
+% Guo et al., CVPR 2021, "Positive-Unlabeled Data Purification in the Wild for Object
+% Detection". Lines 1 to 11 follow Algorithm 1 of the original; lines 12 and 13 are the self-distillation of Section 3.3.
+% Motivation: detection datasets are severely imbalanced. The original gives COCO train2017, where person carries 26k
+% boxes and hair drier only 198. Extra data comes from wild unlabeled images, most of which lack the target class,
+% so the first step trains a PU classifier to purify rather than a detector.
+% Why PU and not ordinary binary classification: the wild unlabeled set contains positives, and treating it wholly as
+% negative would introduce bias.
+\end{document}

@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{POSTER} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P,U,s=$ sample ratio
+	    \ENSURE
+	    Classifier $f$ \\
+	    \STATE $RN=\emptyset$
+	    \STATE Sample $s\%$ of the instances from $P$ as $S$
+		\STATE $Ps\leftarrow P-S$
+		\STATE $Us\leftarrow U\cup S$
+		\STATE Assigned the label 1 to each sample in $Ps$
+		\STATE Assigned the label 0 to each sample in $Us$
+		\STATE $g\leftarrow$ Generate a classifier$(P_s,U_s)$
+		\STATE Classify $U$ using $f$, output the class-conditional-probability
+		\STATE Select a threshold $\theta$ according to the class-conditional-probability of instances in $S$
+		\FOR{$d\in U$}
+		\IF{$Pr(1|d)<=\theta$}
+		\STATE $RN=RN\cup d$
+		\ENDIF
+		\ENDFOR
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

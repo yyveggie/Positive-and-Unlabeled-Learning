@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{SAR-EM} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    PU dataset $\{(x_i,s_i)\}$; attribute subset $x^{e}$ that the propensity score depends on
+	    \ENSURE
+	    Classifier $\hat{f}(x)\approx\Pr(y=1|x)$; propensity model $\hat{e}(x^{e})\approx\Pr(s=1|y=1,x^{e})$
+	    \STATE Initialize $\hat{f}$ (e.g., non-traditional classifier on $(P,U)$) and $\hat{e}$ (e.g., a constant)
+	    \WHILE{expected log-likelihood has not converged}
+	    \STATE \textbf{E-step:} for each example $x_i$:
+	    \IF{$s_i=1$}
+	    \STATE $\hat{y}_i\leftarrow 1$ % a labeled instance is necessarily positive
+	    \ELSE
+	    \STATE $\hat{y}_i\leftarrow \dfrac{\hat{f}(x_i)\,(1-\hat{e}(x_i^{e}))}{1-\hat{f}(x_i)\,\hat{e}(x_i^{e})}$ % the posterior expectation that an unlabeled instance is positive
+	    \ENDIF
+	    \STATE \textbf{M-step:}
+	    \STATE $\hat{f}\leftarrow$ train a probabilistic classifier on all $x_i$, each counted as positive with weight $\hat{y}_i$ and negative with weight $1-\hat{y}_i$
+	    \STATE $\hat{e}\leftarrow$ train a probabilistic model of $s$ on $x_i^{e}$, each example weighted by $\hat{y}_i$ % the labeling propensity is learned on the expected positives only
+	    \ENDWHILE
+		\RETURN $\hat{f},\hat{e}$
+	\end{algorithmic}
+\end{algorithm}
+% Bekker, Robberechts and Davis, ECML-PKDD 2019. The SAR assumption with a propensity score depending only on a known
+% attribute subset; EM trains the classifier and the propensity model together. The founding work of the beyond-SCAR direction.
+\end{document}

@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{IW$\ell$ (importance reweighting for classification with noisy labels)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Noisy sample $\{(X_{i},\hat{Y}_{i})\}_{i=1}^{n}\sim D_{\rho}$;
+	    any surrogate loss $\ell$ designed for ordinary classification;
+	    hypothesis class $\mathcal{F}$
+	    \ENSURE
+	    Classifier $\hat{f}_{n}$ consistent for the clean distribution $D$
+	    \STATE \textbf{Setting:} asymmetric random classification noise --- a true $+1$ flips with
+	    rate $\rho_{+1}$ and a true $-1$ with rate $\rho_{-1}$; PU is the special case
+	    $\rho_{-1}=0$ % PU is one-sided noise, so the method applies to PU directly
+	    \STATE \textbf{Step 1: estimate the noisy posterior and the noise rates}
+	    \STATE Fit $P_{D_{\rho}}(\hat{Y}\mid X)$ on the noisy sample % estimable from the noisy data alone
+	    \STATE Estimate $\rho_{+1},\rho_{-1}$ (the paper bounds them by the conditional
+	    probability and estimates them from the fitted posterior)
+	    \STATE \textbf{Step 2: importance weights}
+	    \STATE $\beta(X,\hat{Y})=\dfrac{P_{D}(Y\mid X)}{P_{D_{\rho}}(\hat{Y}\mid X)}
+	    =\dfrac{P_{D_{\rho}}(\hat{Y}\mid X)-\rho_{-\hat{Y}}}
+	    {\left(1-\rho_{+1}-\rho_{-1}\right)P_{D_{\rho}}(\hat{Y}\mid X)}$ % the density ratio between clean and noisy distributions, expressible in closed form from the noise rates
+	    \STATE Set $\beta(X,\hat{Y})=0$ whenever $P_{D_{\rho}}(\hat{Y}\mid X)=0$ % a convention that keeps the weight non-negative
+	    \STATE \textbf{Step 3: minimise the reweighted empirical risk}
+	    \STATE $\hat{f}_{n}=\arg\min_{f\in\mathcal{F}}\ \dfrac{1}{n}\sum_{i=1}^{n}
+	    \beta(X_{i},\hat{Y}_{i})\,\ell\!\left(f(X_{i}),\hat{Y}_{i}\right)$ % any off-the-shelf loss carries over unchanged; only the weighting is added
+		\RETURN $\hat{f}_{n}$
+	\end{algorithmic}
+\end{algorithm}
+% Liu \& Tao, IEEE TPAMI 2016, "Classification with Noisy Labels by Importance
+% Reweighting". Compiled from equations (1) to (3), Lemma 2 and Theorem 1 of the original.
+% Position: one of the key theoretical works placing PU learning inside the framework of one-sided label noise.
+% Central result (Theorem 1): any surrogate loss designed for ordinary classification can be used under asymmetric RCN,
+% with the same consistency rate as the corresponding ordinary algorithm, provided it is weighted by beta and provided
+% the noisy posterior P_{D_rho}(Y_hat|X) and the noise rates rho_{+1}, rho_{-1} are estimated accurately enough.
+% The cost sits in that proviso: the method trades the problem of designing a new loss for the problem of estimating
+% two noise rates. The form of beta shows why, since its denominator carries (1 - rho_+1 - rho_-1) and the weight
+% explodes as the two rates sum toward 1. The survey places it in branch H, since its direct product is a noise-rate estimate.
+\end{document}

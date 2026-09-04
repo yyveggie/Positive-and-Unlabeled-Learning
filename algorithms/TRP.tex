@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{TRP: future connection score on temporal graphs, trained by the nnPU risk (TPU)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Temporal graph $G=\{G^{1},G^{2},\dots,G^{T}\}$ with node features $x_{v}^{t}$;
+	    a node pair $a_{i,j}=\langle v_{i},v_{j}\rangle$ in $G^{t}$;
+	    an initialized pair-embedding vector $h_{a_{i,j}}^{0}$ (e.g. zeros)
+	    \ENSURE
+	    $p_{a_{i,j}}^{t}$, the connectivity prediction score for the node pair $a_{i,j}$
+	    \FOR{$\tau\leftarrow 1\cdots t$}
+	    \STATE Obtain the current node features $x_{v}^{\tau}$ ($v=v_{i},v_{j}$), as well as
+	    $x_{Nr(v)}^{\tau}$ for the sampled neighbouring nodes of $v_{i},v_{j}$
+	    \STATE Aggregate the neighbourhood information:
+	    $z_{v}^{\tau}=f_{G}\!\left(x_{v}^{\tau},x_{Nr(v)}^{\tau};\theta_{G}\right)$,\quad $v=v_{i},v_{j}$ % this paper aggregates by max pooling
+	    \STATE Update the pair embedding:
+	    $h_{a_{i,j}}^{\tau}=f_{A}\!\left(h_{a_{i,j}}^{\tau-1},z_{v_{i}}^{\tau},z_{v_{j}}^{\tau};\theta_{A}\right)$ % recursion over time, capturing how the pairwise relation evolves
+	    \ENDFOR
+	    \RETURN $p_{a_{i,j}}^{t}=f_{C}\!\left(h_{a_{i,j}}^{t};\theta_{C}\right)$
+	    \\\hrulefill
+	    \STATE \textbf{Training:} fit the score above with the \emph{non-negative PU risk}
+	    (Kiryo et al.), because a currently unconnected pair is unlabeled, not negative % an unconnected pair now does not mean it will stay unconnected
+	    \STATE \textbf{Testing:} run the same procedure with $t=T$ to obtain $p_{a_{i,j}}^{T}$
+	\end{algorithmic}
+\end{algorithm}
+% Akujuobi, Chen, Elhoseiny, Spranger, Zhang, NeurIPS 2020, "Temporal Positive-unlabeled
+% Learning for Biomedical Hypothesis Generation via Risk Estimation".
+% Compiled from Algorithm 1 of the original; the training objective and test procedure are in its Section 3.
+% Naming: the original calls the temporal representation module TRP and the whole method TPU. Figure 2 of the survey
+% uses TRP, so the directory name follows the figure.
+% Task: biomedical hypothesis generation, predicting whether two scientific terms will become associated in future.
+% Two PU points:
+% (1) a term pair unobserved now is not a negative, only not yet studied, so a non-negative risk estimator is used
+%     instead of ordinary binary classification; (2) relations evolve, so the model updates pair embeddings
+%     recursively over tau = 1..t rather than reading a single static snapshot.
+% Difference from others in the branch: GPL addresses heterophily bias in node classification, PULL the PU structure
+% of edge prediction, and TRP temporal evolution; the three target different graph PU problems.
+\end{document}

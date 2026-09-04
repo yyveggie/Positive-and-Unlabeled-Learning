@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{CAPU (class-prior approximation jointly with PU classification)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Positive samples $x_{P}:=\{x_{i}\}_{i=1}^{n_{p}}$; unlabeled samples
+	    $x_{U}:=\{x_{i}\}_{i=1}^{n_{u}}$;
+	    Gaussian kernel width $\sigma$; hyperparameters $\lambda,\beta$;
+	    threshold $\mu=1/\min(n_{p},n_{u})$; constants $\epsilon=0.04$, $\theta_{\max}=10$
+	    \ENSURE
+	    $\tilde{\theta},\tilde{\gamma},\tilde{\delta},\tilde{\nu}$
+	    \STATE \textbf{Model:} the unlabeled distribution is a mixture
+	    $P_{U}=\pi^{\ast}P_{U,P}+(1-\pi^{\ast})P_{U,N}$, matched in an RKHS by MMD % distribution matching by maximum mean discrepancy
+	    \STATE \quad $\mathcal{F}(\theta)=-\dfrac{1}{\theta}\mathbb{E}_{x\sim(x\mid y=1)}[-g(x)]
+	    +\left\|(1-\theta)\phi(P_{P})+\theta\phi(P_{U})-\nu\phi(P)\right\|^{2}+C$ % theta is in one-to-one correspondence with the class prior
+	    \STATE $\theta_{l}\leftarrow 1$;\quad $\theta_{r}\leftarrow \theta_{\max}$
+	    \WHILE{$\theta_{r}-\theta_{l}\geq\epsilon$}
+	    \STATE $\theta\leftarrow \dfrac{\theta_{l}+\theta_{r}}{2}$
+	    \STATE $\theta_{1}\leftarrow \theta-\epsilon/4$;\quad
+	    $\mu_{\theta_{1}}^{\top}=\left[\tfrac{1-\theta_{1}}{n_{p}}\mathbf{1}_{n_{p}}^{\top},\ \tfrac{\theta_{1}}{n_{u}}\mathbf{1}_{n_{u}}^{\top}\right]$;\quad
+	    $F_{1}\leftarrow \hat{F}(\theta_{1})$
+	    \STATE $\theta_{2}\leftarrow \theta+\epsilon/4$;\quad
+	    $\mu_{\theta_{2}}^{\top}=\left[\tfrac{1-\theta_{2}}{n_{p}}\mathbf{1}_{n_{p}}^{\top},\ \tfrac{\theta_{2}}{n_{u}}\mathbf{1}_{n_{u}}^{\top}\right]$;\quad
+	    $F_{2}\leftarrow \hat{F}(\theta_{2})$
+	    \STATE Shrink $[\theta_{l},\theta_{r}]$ towards the side with the smaller of $F_{1},F_{2}$ % the objective is unimodal in theta
+	    \ENDWHILE
+	    \STATE $\tilde{\theta}\leftarrow$ the located minimiser
+	    \STATE Optimize $\min\hat{F}(\tilde{\theta})$ by standard quadratic programming
+	    to obtain $(\tilde{\gamma},\tilde{\delta},\tilde{\nu})$ % once theta is fixed the rest is a standard QP
+		\RETURN $\tilde{\theta},\tilde{\gamma},\tilde{\delta},\tilde{\nu}$
+	\end{algorithmic}
+\end{algorithm}
+% Chang et al., IJCAI 2020, "Positive-Unlabeled Learning with Class Prior Approximation"
+% (the original abbreviates the model as CAPU). Compiled from Algorithm 1 and equation (6) of the original.
+% Difference from two-stage methods: TIcE, KM, BBE and DEDPUL all estimate the prior first and then train a classifier.
+% CAPU writes both into a single convex risk-minimization objective, in which the classification risk and the MMD
+% matching term share the parameter theta. Since theta corresponds one-to-one with the class prior, prior estimation
+% and classifier learning constrain each other and are solved alternately. The objective is unimodal in theta, so an
+% interval search with a gradient threshold suffices; once theta is fixed the remaining variables form a standard QP.
+\end{document}

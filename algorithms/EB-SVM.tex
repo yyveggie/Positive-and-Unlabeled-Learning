@@ -1,0 +1,36 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{EB-SVM} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;C_+;C_-$
+	    \ENSURE
+	    Classifier\ $f$
+	    \STATE $CP\leftarrow 0, i\leftarrow 1$
+	    \STATE Let the number of positive samples approximately in U be $r$
+		\STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+		\WHILE{TRUE}
+		\STATE $f_i$ $\leftarrow$ Generate a biased SVM classifier$(P,U,C_+,C_-)$
+		\STATE Classify $U$ using $f_i$
+		\STATE Let the set of samples in $U$ that are classified as positive be $S$; the number of $S$ be $t$
+		\IF{$r=0$}
+		\STATE break
+		\ELSIF{$0<t<r$}
+		\STATE $CP\leftarrow S, r\leftarrow r-t$
+		\ELSIF{$r>t$}
+		\STATE Sort decision values from $f_i$ with descend. Then designate $r$ the top ranked samples $S_r$ as $CP, r\leftarrow 0$
+		\ELSE
+		\STATE break
+		\ENDIF
+		\STATE $P\leftarrow P+CP, U\leftarrow U-CP, i\leftarrow i+1$
+		\ENDWHILE
+		\RETURN{Last classifier $f_i$}  
+	\end{algorithmic}
+\end{algorithm}
+\end{document}

@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{A-EM (augmented EM for PU learning under different data distributions)}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Positive set $P$; unlabeled test set $U$; irrelevant document set $O$
+	    (drawn from a broad corpus, nearly free of positives);
+	    keyword budget $|K|$
+	    \ENSURE
+	    Selected naive Bayes classifier
+	    \STATE \textbf{Motivation:} $U$ and $P$ come from \emph{different} distributions, so the
+	    plain two-step schema degrades; $O$ is added to strengthen the negative side % augmenting the negative set is this paper's key change from S-EM
+	    \STATE $N\leftarrow U\cup O$
+	    \STATE \textbf{Initialize soft labels}
+	    \STATE $\Pr(+\mid d)\leftarrow 1,\ \Pr(-\mid d)\leftarrow 0$ for every $d\in P$
+	    \STATE $\Pr(+\mid d)\leftarrow 0,\ \Pr(-\mid d)\leftarrow 1$ for every $d\in N$
+	    \STATE $NB\leftarrow \textsc{TrainNB}(P,N,\Pr(\cdot\mid\cdot))$
+	    \hfill \emph{multinomial NB with Laplace smoothing} % P contributes hard labels, N contributes soft-label weighted counts
+	    \STATE $\mathcal{C}\leftarrow \{NB\}$
+	    \REPEAT
+	    \STATE \textbf{E-step:} for each $d\in N$, recompute
+	    $\big(\Pr(+\mid d),\Pr(-\mid d)\big)$ from the current $NB$
+	    \STATE \textbf{M-step:} $NB'\leftarrow \textsc{TrainNB}(P,N,\Pr(\cdot\mid\cdot))$ with the
+	    updated posteriors as fractional counts
+	    \STATE Append $NB'$ to $\mathcal{C}$;\quad $NB\leftarrow NB'$
+	    \UNTIL{the parameters change by less than a tolerance}
+	    \STATE \textbf{Classifier selection from the iteration sequence}
+	    \STATE $K\leftarrow$ the $|K|$ words with the largest $\Pr(w\mid +)$ under an NB model
+	    trained on $P$ alone % positive-class keywords, used to estimate the F-measure without true labels
+	    \STATE Select from $\mathcal{C}$ the classifier maximising the paper's estimated
+	    $F$-measure criterion, computed from $U$ and $K$ only % the estimator appears in Section 3.5 of the original; stated here as a criterion, without repeating the ratio formula
+		\RETURN the selected classifier
+	\end{algorithmic}
+\end{algorithm}
+% Li, Liu, Ng, ECML 2005, "Learning from Positive and Unlabeled Examples with Different
+% Data Distributions".
+% Difference in setting from S-EM: S-EM assumes P and U share a distribution. This paper targets the case where U is
+% distributed differently from P, and introduces a task-independent document set O, almost free of positives, to augment
+% the negative side, setting N = U union O. The EM part reuses the soft-label naive Bayes of S-EM: P always counts into
+% the positive class with hard labels, while each document in N contributes fractional counts to both classes by the
+% current posteriors Pr(+|d) and Pr(-|d). Classifier selection along the iteration sequence depends only on U and the
+%
+% positive keyword set K, no longer on P. Note: for the selection criterion on line 15, the original derives the
+% F-measure estimate in Section 3.5. This pseudocode states the criterion without repeating the ratio formula, because
+% the material at hand does not include that derivation. Do not substitute an approximate scoring function.
+\end{document}

@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{ReCPE (regrouping class-prior estimation)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    An unlabeled sample $S_{u}$ i.i.d. drawn from $P_{u}$; a positive sample $S_{p}$
+	    i.i.d. drawn from $P_{p}$; the percentage $p$ of the sample needed to copy from
+	    $S_{u}$ to $S_{p}$
+	    \ENSURE
+	    The estimated new class-prior $\hat{\pi}'$
+	    \STATE Train a binary classifier $h$ with the unlabeled sample $S_{u}$ and positive
+	    sample $S_{p}$ by treating $S_{u}$ as a negative sample % a naive classifier, used only to produce an ordering
+	    \STATE Assign each example $x\in S_{u}$ with the negative class-posterior probability
+	    $P(Y=-1\mid X=x)$ predicted by the trained classifier $h$
+	    \STATE Obtain $S_{p}'$ by copying $p\times|S_{u}|$ examples with the smallest negative
+	    class-posterior probability $P(Y=-1\mid X=x)$ from $S_{u}$ to $S_{p}$ % the most positive-looking part of U is copied into P, forming the auxiliary distribution P_p'
+	    \STATE Estimate the class-prior $\pi'$ by employing an algorithm based on Eq.~(5)
+	    with inputs $S_{u}$ and $S_{p}'$ % any existing CPE method can be dropped in here; ReCPE is a plug-in
+		\RETURN $\hat{\pi}'$
+	\end{algorithmic}
+\end{algorithm}
+% Yao et al., ICLR 2022 (arXiv 2002.03673), "Rethinking Class-Prior Estimation for
+% Positive-Unlabeled Learning". Transcribed line by line from Algorithm 1 of the original.
+% What this paper identifies is a methodological problem rather than another estimator: every distribution-free CPE
+% method (TIcE, KM, BBE and the rest) implicitly depends on the irreducibility assumption, that the positive
+% distribution P_p is not a component within the support of the negative distribution P_n.
+% Proposition 1 states the consequence: writing beta* for the largest share of P_p inside P_n, these methods actually
+%     kappa* = pi + (1 - pi) * beta*
+% estimate a different quantity. When the assumption holds, beta* = 0 and kappa* = pi; when it fails, the estimate is
+% systematically high. In the original's example the true pi = 0.5 while existing methods return 0.7.
+% Worse, the assumption cannot be verified: verifying it would require observing P_n, which contradicts the PU setting.
+% ReCPE sidesteps verification by copying the most positive-looking p fraction of S_u into S_p, producing an auxiliary
+% distribution P_p' for which irreducibility necessarily holds, and then calling any CPE method as usual.
+% It is therefore a plug-in rather than a standalone method, and the original reports it improving every SOTA CPE method.
+\end{document}

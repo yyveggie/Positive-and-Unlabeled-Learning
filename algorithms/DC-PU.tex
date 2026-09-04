@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{DC-PU (dual-constrained PU risk balancing the two error rates)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $D_{p}\cup D_{u}$; class prior $\pi$; moving parameter $\beta$; penalty $\tau$;
+	    slack $\gamma$; iterations $T$; classifier $g$; Lagrange parameter $\Theta$
+	    \ENSURE
+	    Trained classifier $g$
+	    \STATE Initialize $g$ with a pre-trained backbone and $\Theta$ randomly
+	    \FOR{$t=1$ \TO $T$}
+	    \STATE Draw a mini-batch $D_{p}^{(t)}\cup D_{u}^{(t)}$ from $D_{p}\cup D_{u}$
+	    \STATE Compute $\hat{R}_{p}^{+}(g;D_{p}^{(t)})$, $\hat{R}_{u}^{-}(g;D_{u}^{(t)})$, and $\hat{R}_{p}^{-}(g;D_{p}^{(t)})$
+	    \STATE $\omega^{(t)}\leftarrow \beta\omega^{(t-1)}+(1-\beta)(1-\pi)\hat{R}_{p}^{+}(g;D_{p}^{(t)})$ % the lower bound on the negative risk is no longer 0 but a moving average of the positive risk
+	    \IF{$\hat{R}_{u}^{-}(g;D_{u}^{(t)})-\pi\hat{R}_{p}^{-}(g;D_{p}^{(t)})\geq \omega^{(t)}-\gamma$}
+	    \STATE Compute the stochastic gradient $\nabla_{g}L$ % ordinary step
+	    \ELSE
+	    \STATE $\nabla_{g}L\leftarrow \nabla_{g}\!\left(\hat{R}_{u}^{-}(g;D_{u}^{(t)})-\pi\hat{R}_{p}^{-}(g;D_{p}^{(t)})\right)$ % roll back when the bound is hit, following the nnPU strategy
+	    \ENDIF
+	    \STATE Update $g$ with $\nabla_{g}L$ and any adaptive learning-rate method
+	    \STATE $\Theta^{(t)}\leftarrow \Theta^{(t-1)}+\tau\left(\hat{R}_{p}^{+}(g;D_{p}^{(t)})-\dfrac{\hat{R}_{u}^{-}(g;D_{u}^{(t)})-\pi\hat{R}_{p}^{-}(g;D_{p}^{(t)})}{1-\pi}\right)$ % dual update for the explicit equality constraint: the two classwise risks should approach each other
+	    \ENDFOR
+		\RETURN $g$
+	\end{algorithmic}
+\end{algorithm}
+% X. Li et al., NeurIPS 2025, "Balancing Positive and Negative Classification Error Rates
+% in Positive-Unlabeled Learning" (Algorithm 1 and equations (9), (10) and (11) of the original).
+% Problem: the non-negativity constraint of nnPU truncates the negative empirical risk at 0, and during training the
+% risk falls to that floor and stays there, so the negative class is overweighted and the two classwise error rates
+% become unbalanced. Method, two constraints: (1) replace the lower bound on the negative empirical risk by the
+% positive empirical risk; (2) add an explicit equality constraint between the two, imposed through an augmented
+% Lagrangian, with Theta the multiplier and tau the penalty parameter.
+\end{document}

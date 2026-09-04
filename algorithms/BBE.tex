@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{BBE (Best Bin Estimation) and CVIR; alternating as TED$^{n}$} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$; network $f$; held-out splits $P_{val},U_{val}$; epochs $E$;
+	    confidence level $\delta$
+	    \ENSURE
+	    Class-prior estimate $\hat{\alpha}$; classifier $f$
+	    \STATE \textbf{Part A: BBE --- estimate the prior from the top bin of the score axis}
+	    \STATE Sort $P_{val}$ and $U_{val}$ by predicted probability, both in \emph{descending} order % BBE looks only at the top of the score axis, where the sample is nearly pure positive
+	    \FORALL{candidate thresholds $c$ on the score axis}
+	    \STATE $\hat{q}_{P}(c)\leftarrow$ fraction of $P_{val}$ with score $\geq c$;\quad
+	    $\hat{q}_{U}(c)\leftarrow$ fraction of $U_{val}$ with score $\geq c$
+	    \STATE $\hat{\alpha}(c)\leftarrow \dfrac{\hat{q}_{U}(c)}{\hat{q}_{P}(c)}$ % in the top bin almost every unlabeled sample is positive, so the ratio is the prior
+	    \STATE Attach a finite-sample confidence bound to $\hat{\alpha}(c)$ % the original gives consistency and finite-sample guarantees
+	    \ENDFOR
+	    \STATE $\hat{\alpha}\leftarrow \hat{\alpha}(c^{\ast})$ where $c^{\ast}$ minimises the upper confidence bound % pick the best bin, the one minimizing the upper confidence bound
+	    \STATE \textbf{Part B: CVIR --- rank-and-discard risk objective}
+	    \FOR{epoch $=1$ \TO $E$}
+	    \STATE Rank all $x\in U$ by the current model's loss for the negative label
+	    \STATE Reject the top $\hat{\alpha}$ fraction of $U$ as \emph{suspected positives};
+	    keep the rest % discarded outright rather than downweighted; this is what separates CVIR from reweighting methods
+	    \STATE Update $f$ by minimising the ordinary PN risk on $P$ against the \emph{kept} subset of $U$
+	    \STATE \emph{(TED$^{n}$)}: re-run Part~A on the held-out split to refresh $\hat{\alpha}$ % prior and classifier refresh alternately, each improving the other
+	    \ENDFOR
+		\RETURN $\hat{\alpha}$, $f$
+	\end{algorithmic}
+\end{algorithm}
+% Garg, Wu, Smola, Balakrishnan, Lipton, NeurIPS 2021 (arXiv 2111.00980),
+% "Mixture Proportion Estimation and PU Learning: A Modern Approach".
+% This pseudocode follows the authors' released implementation: BBE_estimator in estimator.py, and the CVIR / TEDn
+% loop rank_inputs + train_PU_discard in train_PU.py.
+% The BBE idea: take a bin at the top of the classifier score axis, where unlabeled samples are almost all positive,
+% so the unlabeled proportion falling in that bin divided by the positive proportion estimates the class prior.
+% The bin is not chosen heuristically: a finite-sample upper confidence bound is computed for every candidate threshold
+% and the smallest is taken, which supplies the consistency guarantee that earlier methods such as TIcE and KM lack.
+% The CVIR idea: discard outright, rather than downweight, the alpha fraction of U carrying the largest current loss,
+% and train the remainder as negatives in ordinary PN fashion.
+% TED^n alternates the two: a better classifier separates the score axis further, BBE estimates more accurately, and
+% CVIR discards more accurately. Note that alpha and the CVIR discard fraction are the same quantity, so the two parts
+% are coupled by construction. In this project's experiments the method is recorded as BBE->CVIR.
+\end{document}

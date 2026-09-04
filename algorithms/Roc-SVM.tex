@@ -1,0 +1,47 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Roc-SVM} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;\alpha=$ adjust the relative impact of positive samples; $\beta=$ adjust the relative impact of negative samples
+	    \ENSURE
+	    Classifier $f$ \\
+	    \STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+	    \STATE $\vec{c}^{+}\leftarrow \alpha \frac{1}{|P|} \sum_{x \in P} \frac{\vec{x}}{\|\vec{x}\|}-\beta \frac{1}{|U|} \sum_{x \in U} \frac{\vec{x}}{\|\vec{x}\|}$
+	    \STATE $\vec{c}^{-}\leftarrow \alpha \frac{1}{|U|} \sum_{x \in U} \frac{\vec{x}}{\|\vec{x}\|}-\beta \frac{1}{|P|} \sum_{x \in P} \frac{\vec{x}}{\|\vec{x}\|}$
+	    \STATE $RN\leftarrow \emptyset$
+	    \FOR{$x^{'}$ in $U$}
+	    \IF{$sim(\vec{c}^{+},\vec{x}^{'})<=sim(\vec{c}^{-},\vec{x}^{'})$}
+	    \STATE $RN\leftarrow RN\cup x^{'}$
+	    \ENDIF
+	    \ENDFOR
+	    \STATE $Q\leftarrow U-RN$
+	    \STATE $i\leftarrow 1$
+	    \STATE Assigned the label 0 to each sample in $RN$
+	    \STATE $S_i\leftarrow$ Generate a SVM classifier$(P,RN)$
+	    \STATE Classify $Q$ using $S_i$
+	    \STATE Let the set of samples in $Q$ that are classified as negative be $W$
+	    \IF{$|W|\not=0$}
+	    \STATE $Q\leftarrow Q-W$
+	    \STATE $RN\leftarrow RN\cup W$
+	    \STATE $i\leftarrow i+1$
+	    \STATE go to (14)
+	    \ELSE
+	    \STATE break
+	    \ENDIF
+	    \STATE Use the last SVM classifier $S_{last}$ to classify $P$
+	    \IF{more than 5\% $P$ are classified as negative}
+	    \STATE $f\leftarrow S_1$
+	    \ELSE
+	    \STATE $f\leftarrow S_{last}$
+	    \ENDIF
+	    \RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

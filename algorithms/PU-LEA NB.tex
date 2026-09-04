@@ -1,0 +1,30 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{PU-LEA NB} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$
+	    \ENSURE
+	    Classifier $f$ \\
+	    \STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+	    \STATE $U_1=U$
+	    \STATE $|W_0|\leftarrow |U_1|$
+	    \STATE $|W_1|\leftarrow |U_1|$
+	    \STATE $i=1$
+	    \WHILE{$|W_i|<=|W_{i-1}|$}
+		\STATE $f_i\leftarrow$ Generate a classifier$(P,U)$
+		\STATE Classify $U_i$ using $f_i$
+		\STATE Let the set of samples in $U_i$ that are classified as positive be $W_i$
+		\STATE $U_{i+1}\leftarrow U_i-W_i$
+		\STATE $i\leftarrow i+1$
+		\ENDWHILE
+		\RETURN $f_{last}$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Self-PU (self-paced, self-calibrated and self-distilled PU training)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$; class prior $\pi$; model $g$; sampling ratio $r$ (10\%--40\%);
+	    warm-up epochs $T_{w}$; balancing factor $\gamma$; teachers $\mathcal{T}_{1},\mathcal{T}_{2}$
+	    \ENSURE
+	    Classifier $g$
+	    \STATE Warm up $g$ for $T_{w}$ epochs with the nnPU risk % a warm-up, since confident instances chosen too early would not be reliable
+	    \STATE $D_{trust}\leftarrow \emptyset$
+	    \FOR{each self-paced round $t$}
+	    \STATE \textbf{(a) Self-paced selection}
+	    \STATE \quad $p(x)\leftarrow f(g(x))$ for $x\in U$;\quad sort $U$ by $p(x)$ % f is a monotone map such as the sigmoid
+	    \STATE \quad Grow $|D_{trust}|$ \emph{linearly} from $0$ to $r|D_{U}|$ as training proceeds % aligned with the order in which deep networks learn simple patterns before irregular ones
+	    \STATE \quad Take the $n$ most confident positives and $n$ most confident negatives
+	    (\emph{balanced in size at each step}) % equal numbers from both ends, so the selection itself introduces no imbalance
+	    \STATE \textbf{(b) ``In-and-out'' trusted set}
+	    \STATE \quad Re-examine every $x\in D_{trust}$; remove those whose current prediction
+	    has become low-confidence and return them to $U$ % instances may be returned to U, so an early mistake can be undone
+	    \STATE \textbf{(c) Self-calibrated instance-aware loss}
+	    \STATE \quad $T\leftarrow \sup\{k:\sum_{i=1}^{k}w_{2,i}<\gamma n\}$ % caps the total weight of the cross-entropy term, so imprecise soft labels cannot dominate
+	    \STATE \quad $w_{i,1}^{\ast}\leftarrow w_{i,1}\mathbf{1}_{\{i<T\}}$,\qquad
+	    $w_{i,2}^{\ast}\leftarrow w_{i,2}\mathbf{1}_{\{i<T\}}+\mathbf{1}_{\{i\geq T\}}$
+	    \STATE \quad Form the hybrid loss: nnPU risk on $U$ plus weighted cross-entropy on $D_{trust}$
+	    \STATE \textbf{(d) Self-distillation}
+	    \STATE \quad Train two collaborative students against teachers $\mathcal{T}_{1},\mathcal{T}_{2}$
+	    and enforce consistency between them % teacher-student consistency as an extra source of supervision
+	    \STATE Update $g$ by minimising the total objective
+	    \ENDFOR
+		\RETURN $g$
+	\end{algorithmic}
+\end{algorithm}
+% X. Chen et al., ICML 2020, "Self-PU: Self Boosted and Calibrated Positive-Unlabeled
+% Training". The original has no numbered algorithm block; compiled from Sections 3.1 to 3.3 and equations (7) and (8).
+% Each of the three self- components solves one problem:
+% (1) self-paced. The unbiased risk estimator still depends on the class prior and downweights unlabeled data.
+%     Self-paced selection converts high-confidence instances into full supervision, adding a growing supply of strong
+%     supervision alongside the weak. The number selected is not fixed but grows linearly to r|D_U| during training.
+% (2) self-calibrated. When soft labels are imprecise the cross-entropy term misleads, so equations (7) and (8) cap
+%     its total weight by gamma. (3) self-distillation. Two co-trained students and a teacher supply extra signal by consistency.
+% Key difference from the classical two-step methods: those select negatives only, and never revise the choice.
+% Self-PU selects at both ends and permits an in-and-out revision, returning wrongly selected instances to U.
+\end{document}

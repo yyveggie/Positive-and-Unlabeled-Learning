@@ -1,0 +1,50 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{FedPU (federated learning with positive and unlabeled data)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Training dataset $S_{k}$ in each client $k$ with $n_{k}$ training samples;
+	    class prior $\pi_{i}$ for each class $i=1,\dots,C$;
+	    communication rounds $T$; local training iterations $I$
+	    \ENSURE
+	    The model $f(x;w_{T})$ trained by PU data
+	    \STATE \textbf{Server executes:}
+	    \STATE Initialize the network $f(x;w_{0})$
+	    \FOR{each round $t=1,2,\dots,T$}
+	    \FOR{each client $k\in\{1,\dots,K\}$ \textbf{in parallel}}
+	    \STATE $w_{t+1}^{k}\leftarrow \textsc{ClientUpdate}(k,w_{t})$
+	    \ENDFOR
+	    \STATE $w_{t+1}\leftarrow \sum_{k=1}^{K}\dfrac{n_{k}}{n}w_{t+1}^{k}$
+	    \hfill \emph{weighted aggregation} % only model parameters are exchanged; local data never leaves the client
+	    \ENDFOR
+	    \\\hrulefill
+	    \STATE \textbf{function} \textsc{ClientUpdate}$(k,w_{t})$ \quad // run on client $k$
+	    \FOR{each local epoch $i$ from $1$ to $I$}
+	    \STATE Randomly select a batch of positive and unlabeled data $\{x^{k}\}$ from $S_{k}$
+	    \STATE Calculate the first and second terms of the objective using labeled data
+	    by $f(x^{P};w_{t})$
+	    \STATE Calculate the third term using unlabeled data by $f(x^{U};w_{t})$ % the aim is to treat classes labeled at other clients as the local source of negatives
+	    \STATE Minimize the loss and update the weights $w_{t}^{k}$ according to the gradient
+	    \ENDFOR
+	    \RETURN the updated weight $w_{t+1}^{k}$ to the server
+	\end{algorithmic}
+\end{algorithm}
+% Lin, Chen, Xu, Xu, Gui, Deng, Wang, ICML 2022 Spotlight,
+% "Federated Learning with Positive and Unlabeled Data". Compiled from Algorithm 1 and equation (10) of the original.
+% Key difference from ordinary PU learning: there the negative class is a single complement, whereas under federation a
+% class left unlabeled at one client may be exactly the class another client has labeled. FedPU therefore does not
+% treat unlabeled data as one undifferentiated negative class, but minimizes the expected risk over several negative
+% classes, using the labeling information held by other clients to delimit the local negative composition. That is what
+% separates it from running nnPU independently at every client.
+% Federation constraints, as listed in the original: (1) each client labels only part of its own data; (2) data is never
+% uploaded to the central server; (3) only model parameters pass between clients and server. A generalization error
+% bound is given.
+% Status: the survey notes that the direction has attracted very few follow-ups at major venues, leaving FedPU close to
+% a lone instance in four years, while the institutions most constrained to positive-only labels, hospitals and banks,
+% are also the least able to pool raw data. The mismatch makes this an open direction (see Section 12, Open problems).
+\end{document}

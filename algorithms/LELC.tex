@@ -1,0 +1,59 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+	\caption{LELC: extracting likely positive and negative micro-clusters for stream PU learning}
+	\begin{algorithmic}[1]
+	    \REQUIRE
+	    Current positive chunk $D_{C}$; previously predicted positive set $D_{mp}$ and
+	    negative set $D_{mn}$; cluster budget $k$; Rocchio weights $\alpha,\beta$
+	    \ENSURE
+	    Final SVM classifier $F_{SVM}$
+	    \STATE \textbf{Alg.~1: extract reliable negatives}
+	    \STATE $RN\leftarrow\emptyset$;\quad $P\leftarrow D_{C}$;\quad $U\leftarrow D_{mp}\cup D_{mn}$
+	    \STATE Build a Spy extraction classifier $F_{S\text{-}EM}$ using $P$ and $U$
+	    \STATE Build a Rocchio extraction classifier $F_{Roc\text{-}SVM}$ using $P$ and $U$
+	    \FORALL{$d\in U$}
+	    \STATE \textbf{if} $F_{S\text{-}EM}(d)=-1$ \textbf{and} $F_{Roc\text{-}SVM}(d)=-1$
+	    \textbf{then} $RN\leftarrow RN\cup\{d\}$ % an instance counts as reliable only when both extractors call it negative; the intersection, not the union
+	    \ENDFOR
+	    \STATE $P'\leftarrow D_{mp}-RN$;\quad $N'\leftarrow D_{mn}-RN$
+	    \STATE \textbf{Alg.~2: build representative prototypes}
+	    \STATE Represent $P$ and $RN$ by TFIDF; partition $RN$ into $r$ clusters
+	    $RN_{1},\dots,RN_{r}$ with $r=\frac{|RN|}{|P'|+|N'|+|RN|}\cdot k$ % cluster counts are allocated in proportion to set size
+	    \FOR{$i=1$ \TO $r$}
+	    \STATE $\vec{p}_{i}\leftarrow \alpha\frac{1}{|P|}\sum_{\vec{d}\in P}\frac{\vec{d}}{\|\vec{d}\|}
+	    -\beta\frac{1}{|RN_{i}|}\sum_{\vec{d}\in RN_{i}}\frac{\vec{d}}{\|\vec{d}\|}$
+	    \STATE $\vec{n}_{i}\leftarrow \alpha\frac{1}{|RN_{i}|}\sum_{\vec{d}\in RN_{i}}\frac{\vec{d}}{\|\vec{d}\|}
+	    -\beta\frac{1}{|P|}\sum_{\vec{d}\in P}\frac{\vec{d}}{\|\vec{d}\|}$ % Rocchio-style prototype: the positive centre minus the negative centre
+	    \ENDFOR
+	    \STATE \textbf{Alg.~3: vote at the micro-cluster level}
+	    \STATE Partition $P'$ into $m$ and $N'$ into $n$ micro-clusters, sized by the same ratio rule
+	    \STATE $LP\leftarrow\emptyset$, $LN\leftarrow\emptyset$
+	    \FORALL{micro-cluster $C_{i}\in C_{P}\cup C_{N}$}
+	    \STATE Count $pos\_vote$ / $neg\_vote$ over $d\in C_{i}$ by whether
+	    $\max_{i}sim(d,\vec{p}_{i})>\max_{i}sim(d,\vec{n}_{i})$
+	    \STATE \textbf{if} $pos\_vote>neg\_vote$ \textbf{then} $LP\leftarrow LP\cup C_{i}$
+	    \textbf{else} $LN\leftarrow LN\cup C_{i}$ % whole clusters are assigned together rather than document by document; this is the point of the micro-cluster
+	    \ENDFOR
+	    \STATE \textbf{Alg.~4: final classifier}
+	    \STATE $P\leftarrow P\cup LP$;\quad $N\leftarrow RN\cup LN$;\quad
+	    build $F_{SVM}$ using $P$ and $N$
+		\RETURN $F_{SVM}$
+	\end{algorithmic}
+\end{algorithm}
+% Li, Yu, Liu et al., SDM 2009, "Positive Unlabeled Learning for Data Stream
+% Classification". Transcribed line by line from Algorithms 1 to 4 and Section 4.4 of the original.
+% Streaming setting: the model processes successive data chunks, D_mp and D_mn hold the positive and negative sets
+% predicted in earlier rounds, and the current chunk D_C supplies new positives. Each round must redraw the reliable
+% negative set and extend the training set. Three design choices are worth noting:
+% (1) The reliable negatives are the intersection of the Spy-EM and Roc-SVM extractors, which is more conservative
+%     than either alone at the cost of a smaller RN, later made up by LP and LN;
+% (2) prototypes follow the Rocchio formula, the weighted difference between positive and negative centres, computed
+%     separately for each cluster of RN so that a multimodal negative class is accommodated;
+% (3) voting happens at the level of micro-clusters rather than documents, with a whole cluster assigned to LP or LN
+%     at once, which is both the origin of the name and what makes the decision insensitive to a single noisy document.
+\end{document}

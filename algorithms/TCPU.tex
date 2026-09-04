@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{TCPU (target class-prior estimation for PU data under label shift)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Source unlabeled sample $\hat{P}$ ($n$); source positive sample $\hat{P}_{+}$ ($m$);
+	    target unlabeled sample $\hat{P}'$ ($n'$); source class prior $\pi$ (assumed known);
+	    kernel $K(\cdot,\cdot)$ with RKHS $\mathcal{H}$
+	    \ENSURE
+	    Target class-prior estimate $\hat{\pi}'$
+	    \STATE \textbf{Setting:} prior shift --- the target prior $\pi'$ differs from the source
+	    prior $\pi$, and no negative observations are available in either domain % negatives are unobservable, so standard label-shift methods do not apply
+	    \STATE \textbf{Identity behind the criterion:}
+	    $\Phi(P')-\gamma\Phi(P_{+})=(\pi'-\gamma)\Phi(P_{+})+(1-\pi')\Phi(P_{-})$ % the first term vanishes when gamma = pi', which is the zero of the criterion
+	    \STATE \quad Hence $L(\gamma)=[\mathrm{Crit}(\gamma)]^{2}$ is minimised exactly at $\gamma=\pi'$
+	    \STATE Compute the kernel mean embeddings
+	    $\Phi(\hat{P}),\ \Phi(\hat{P}_{+}),\ \Phi(\hat{P}')$ in $\mathcal{H}$ % each distribution becomes a point in the RKHS, so comparing distributions means comparing vectors
+	    \STATE $\hat{A}\leftarrow \Phi(\hat{P})-\pi\Phi(\hat{P}_{+})$
+	    \hfill \emph{source side, fixed} % the source-side negative embedding, recovered from the known pi
+	    \STATE $\hat{B}(\gamma)\leftarrow \Phi(\hat{P}')-\gamma\Phi(\hat{P}_{+})$
+	    \hfill \emph{target side, depends on $\gamma$}
+	    \STATE $\hat{L}(\gamma)\leftarrow \left\|(1-\gamma)\hat{A}-(1-\pi)\hat{B}(\gamma)\right\|_{\mathcal{H}}^{2}$ % the empirical criterion, computable in closed form from the kernel matrices
+	    \STATE $\hat{\pi}'\leftarrow \arg\min_{\gamma}\hat{L}(\gamma)$ % a lemma of the original gives this minimizer explicitly, so no numerical search is needed
+		\RETURN $\hat{\pi}'$
+	\end{algorithmic}
+\end{algorithm}
+% Mielniczuk et al., arXiv 2025 (2502.21194), "Prior Shift Estimation for Positive
+% Unlabeled Data Through the Lens of Kernel Embedding" (method name TCPU).
+% The original has no numbered algorithm block; compiled from Section 3.1 and equations (2), (4) and (5).
+% Setting: class-prior shift. Source and target share the positive class-conditional distribution but differ in the
+% class prior (pi to pi'). Standard label-shift methods need negative observations, unavailable under PU.
+% Method: embed the three observable distributions in an RKHS and use the identity
+%   Phi(P') - gamma*Phi(P+) = (pi' - gamma)Phi(P+) + (1 - pi')Phi(P-)
+% to build a criterion whose unique zero is pi', reducing estimation to a one-dimensional minimization.
+% The estimator can be read as MMD distribution matching adapted to PU with label shift.
+% Premise: the source prior pi is known, which the original argues holds when a large source database is available.
+% Asymptotic consistency and a non-asymptotic error bound are also given, writing N = min(n, m, n').
+% Note: the title of this record was once mis-recorded in the project's bibliography as "Class prior estimation for
+% positive-unlabeled learning when label shift occurs"; the title in this file is the correct one.
+\end{document}

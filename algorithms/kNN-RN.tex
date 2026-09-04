@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{knn} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U;k=$ the number of nearest neighbors, $T=$ threshold 
+	    \ENSURE
+	    Classifier $f$ \\
+		\FOR{$u_i\in U$}
+		\FOR{$v_j\in P$}
+		\STATE Computing the similarity $sim(u_i,v_j$)
+		\ENDFOR
+		\STATE Select $k$ nearest neighbors $v_j(j=1,\dots,k)$
+		\STATE $w(u_i)\leftarrow \sum_{v_j\in kNN}\operatorname{sim}\left(u_i, v_j\right)-T$
+		\IF{$w(u_i)<0$}
+		\STATE $RN\leftarrow RN\cup u_i$
+		\ENDIF
+		\ENDFOR
+		\STATE $R\leftarrow U-RN$
+		\STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $RN$
+		\WHILE{TRUE}
+		\STATE $f\leftarrow$ Generate a SVM classifier$(P,RN)$
+		\STATE Classify $R$ using $f$
+		\STATE Let the set of samples in $R$ that are classified as negative be $W$
+		\IF{$W\not=\{\}$}
+		\STATE $R\leftarrow R-W$
+		\STATE $RN\leftarrow RN\cup W$
+		\ELSE
+		\STATE break
+		\ENDIF
+		\ENDWHILE
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

@@ -1,0 +1,33 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input  
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Modified PU-learning} % algorithm title \\
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    $P;U$
+	    \ENSURE
+	    Classifier $f$ \\
+	    \STATE $i\leftarrow 1$
+		\STATE Assigned the label 1 to each sample in $P$
+		\STATE Assigned the label 0 to each sample in $U$
+		\STATE $C_i\leftarrow$ Generate a classifier$(P,U)$
+		\STATE Classify $U$ using $C_i$
+		\STATE Let the set of samples in $U$ that are classified as negative be $Q_i$
+		\STATE $RN_i\leftarrow Q_i$
+		\STATE $Q_0\leftarrow Q_i$
+		\WHILE{$\left|Q_i\right|<=\left|Q_{i-1}\right|$\ and\ $\left|P\right|<\left|RN_i\right|$}
+        \STATE $i\leftarrow i+1$
+        \STATE Training a classifier $C_i$ with $P$ and $RN_{i-1}$
+        \STATE Classify $RN_{i-1}$ using $C_i$
+        \STATE Let the set of samples in $RN_{i-1}$ that are classified as negative be $Q_i$
+        \STATE $RN_i\leftarrow Q_i$
+		\ENDWHILE
+		\STATE $f=C_{last}$
+		\RETURN $f$
+	\end{algorithmic}
+\end{algorithm}
+\end{document}  

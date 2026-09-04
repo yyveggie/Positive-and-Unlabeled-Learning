@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{algorithm, algorithmic, amsfonts, amsmath}
+
+\begin{document}
+\begin{algorithm}[!h]
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % show \REQUIRE as Input
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % show \ENSURE as Output
+	\caption{Partial-OT PU (PU learning by partial optimal transport)} % algorithm title
+	\begin{algorithmic}[1] % [1] numbers every line
+	    \REQUIRE
+	    Unlabeled (source) samples $(\mathcal{X},p)$; positive (target) samples $(\mathcal{Y},q)$;
+	    class prior $\pi$; initial plan $T^{(0)}$
+	    \ENSURE
+	    Transport plan $T$; the transported unlabeled points are identified as positive
+	    \STATE \textbf{Formulation:} transport a mass $s=\pi$ from the unlabeled set to the positive set % only part of the mass is transported, which is the PU structure: a fraction pi of U is positive
+	    \STATE Compute cost matrices $C^{s}$ and $C^{t}$;
+	    build $\bar{p}=[\,p,\ \|q\|_{1}-s\,]$ and $\bar{q}=[\,q,\ \|p\|_{1}-s\,]$ % a dummy point absorbs the untransported mass, turning the partial problem into a balanced one
+	    \FOR{$k=0,1,2,3,\dots$}
+	    \STATE $G^{(k)}\leftarrow M(C^{s},C^{t})\circ T^{(k)}$
+	    \hfill \emph{gradient} $\nabla J_{C^{s},C^{t}}(T^{(k)})$
+	    \STATE $\bar{T}^{(k)}\leftarrow \arg\min_{T\in\Pi(\bar{p},\bar{q})}\langle \bar{G}^{(k)},T\rangle_{F}$
+	    \hfill \emph{solve a partial-W problem} % the linear subproblem of Frank-Wolfe is itself a partial Wasserstein problem
+	    \STATE Get $\tilde{T}^{(k)}$ from $\bar{T}^{(k)}$
+	    \hfill \emph{remove last row and column} % drop the dummy point
+	    \STATE Compute $\gamma^{(k)}$ by line search
+	    \STATE $T^{(k+1)}\leftarrow (1-\gamma^{(k)})T^{(k)}+\gamma^{(k)}\tilde{T}^{(k)}$
+	    \hfill \emph{update}
+	    \ENDFOR
+	    \RETURN $T^{(k)}$;\quad label $x_{i}\in\mathcal{X}$ positive iff its row of $T$ carries mass % an unlabeled instance whose mass is transported is declared positive
+	\end{algorithmic}
+\end{algorithm}
+% Chapel, Alaya, Gasso, NeurIPS 2020, "Partial Optimal Transport with Applications on
+% Positive-Unlabeled Learning". Transcribed line by line from Algorithm 1 of the original, the Frank-Wolfe solver for
+% partial-GW, with the PU modelling of line 1 and the decision rule of the last line added from Section 4.2.
+% Modelling: classical optimal transport requires the two distributions to carry equal mass and all of it to move.
+% The PU structure breaks both, since only a fraction pi of the unlabeled set is positive. Partial optimal transport
+% names the transported mass s = pi explicitly, so which unlabeled instances are moved onto the positive distribution
+% is itself the identification of the positives, with no classifier to train afterwards.
+% Difference from others in the branch: Self-PU, PULNS and Robust-PU all select gradually during training, whereas
+% here selection is a transport problem solved directly, and the solution is the selection.
+% Implementation note: the original states that the algorithm has been merged into the Python Optimal Transport (POT) library.
+\end{document}
