@@ -6,6 +6,7 @@ from sklearn.metrics import balanced_accuracy_score, f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
 from pu_lib import PUData, load_dataset, make_pu
 from official_adapters import train_distpu_official, train_vpu_official
 

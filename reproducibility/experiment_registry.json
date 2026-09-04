@@ -6,8 +6,8 @@
     "forbidden_for_model_selection": ["validation y", "test y", "test metrics"],
     "primary_selection_rule": "maximize Lee--Liu r^2/Pr_U(score>threshold) on the P/U validation split",
     "selection_implementation": [
-      "experiments/src/pu_lib.py::criteria_from_scores",
-      "experiments/src/pu_lib.py::lee_liu",
+      "methods/pu_lib.py::criteria_from_scores",
+      "methods/pu_lib.py::lee_liu",
       "reproducibility/pu_only_selection.py"
     ],
     "oracle_columns": "crit_oraclef1 and best-threshold test metrics are diagnostic only and are never used for headline configuration selection"

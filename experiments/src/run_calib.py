@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse, csv, itertools, os, sys, time
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
 from pu_lib import (PUData, en_estimate_c, lee_liu, load_dataset, make_pu,
                     metrics_from_scores, oracle_f1, scores, train_model_v2)
 

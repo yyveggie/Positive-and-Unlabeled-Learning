@@ -249,6 +249,7 @@ def fig_prior():
 def fig_mechanism():
     import sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
     from sklearn.linear_model import LogisticRegression
     from pu_lib import driving_feature, load_dataset, make_pu
 

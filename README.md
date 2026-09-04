@@ -38,10 +38,12 @@ the results.
 
 ## Method implementations
 
-`experiments/src/` holds every method implemented here, from the loss-level
-objectives to the adapters around the authors' released code. `algorithms/`
-holds one standalone LaTeX document per retained method, recording its source
-and any deviation from it.
+`methods/` holds every method implemented here: the loss-level objectives and
+prior estimators in `pu_lib.py`, the adapters around the authors' released code
+in `official_adapters.py`, and the SCAR diagnostic in `scar_test.py`.
+`algorithms/` holds one standalone LaTeX document per retained method, recording
+its source and any deviation from it. `experiments/src/` holds the runners,
+summarizers and data preparation that drive them.
 
 Eight upstream repositories are not redistributed. Each is pinned to an exact
 revision in `reproducibility/upstream_sources.csv`, and

@@ -13,6 +13,7 @@ import numpy as np
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
 from official_adapters import OFFICIAL_GRID, train_official
 from pu_lib import PUData, bbe_alpha, criteria_from_scores, scores, train_model_v2
 

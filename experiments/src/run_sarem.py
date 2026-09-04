@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
 sys.path.insert(0, os.path.join(HERE, "external", "sarpu", "sarpu"))
 
 from pu_lib import driving_feature, load_dataset, make_pu, metrics_from_scores

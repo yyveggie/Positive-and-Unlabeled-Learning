@@ -5,6 +5,7 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
 from pu_lib import (PUData, criteria_from_scores, load_dataset, make_pu,
                     metrics_from_scores)
 from official_adapters import OFFICIAL_GRID, train_official

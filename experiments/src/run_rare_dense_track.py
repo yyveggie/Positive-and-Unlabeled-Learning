@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "methods"))
 
 from pu_lib import (
     PUData, load_dataset, metrics_from_scores, scores, subsample_to_alpha,

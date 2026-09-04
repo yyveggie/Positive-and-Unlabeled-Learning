@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HERE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "experiments")
 sys.path.insert(0, os.path.join(HERE, "external", "vpu"))
 sys.path.insert(0, os.path.join(HERE, "external", "distpu"))
 

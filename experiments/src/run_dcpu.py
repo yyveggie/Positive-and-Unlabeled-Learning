@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse, csv, itertools, os, sys
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
 from run_ext import FIELDS, HP_GRID, TABULAR, run_cell
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

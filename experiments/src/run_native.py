@@ -7,6 +7,7 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
 from pu_lib import (PUData, bbe_alpha, criteria_from_scores, en_estimate_c,
                     lee_liu, metrics_from_scores, oracle_f1, scores,
                     train_model_v2)

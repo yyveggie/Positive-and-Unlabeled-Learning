@@ -17,6 +17,7 @@ from sklearn.model_selection import StratifiedKFold, train_test_split
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "methods"))
 
 from pu_lib import load_dataset, make_pu, metrics_from_scores
 

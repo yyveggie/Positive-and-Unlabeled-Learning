@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "methods"))
 from pu_lib import _pu_loss, criteria_from_scores, metrics_from_scores
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
