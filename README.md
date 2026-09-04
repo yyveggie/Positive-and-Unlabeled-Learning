@@ -63,5 +63,5 @@ the manifests that fix the case-control construction.
 
 ## Licence
 
-MIT, with the third-party terms noted in LICENSE. Code collected under
+MIT. Third-party terms are recorded in NOTICE. Code collected under
 `implementations/` stays under the licences of its original authors.

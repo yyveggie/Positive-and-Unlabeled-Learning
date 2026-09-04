@@ -19,17 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Third-party code
-
-`implementations/` collects reference implementations gathered from other
-projects. Those files remain under the licences of their original authors, and
-`implementations/README.md` records the source of each directory. Where a file
-carries its own licence header or a LICENSE file sits beside it, that licence
-governs the file and takes precedence over the terms above.
-
-The upstream repositories that `reproducibility/fetch_upstream.py` clones are
-not redistributed here. Each is pinned in `reproducibility/upstream_sources.csv`
-and remains under its own licence.
