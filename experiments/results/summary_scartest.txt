@@ -1,0 +1,51 @@
+400 test runs
+
+==============================================================================
+A. Rejection rate at alpha = 0.05  (mechanism 'scar' row IS the type-I error)
+
+-- statistic: ks --
+mechanism  scar  sar_attr  sar_gap  sar_extreme  P-hat purity
+dataset                                                      
+mushroom    0.0       0.6      0.1          1.0          1.00
+breast      0.0       0.9      0.0          1.0          0.90
+spambase    0.5       1.0      1.0          1.0          0.87
+adult       1.0       0.7      1.0          0.7          0.71
+bank        0.4       0.0      0.5          0.0          0.58
+
+-- statistic: nb_auc --
+mechanism  scar  sar_attr  sar_gap  sar_extreme  P-hat purity
+dataset                                                      
+mushroom    0.1       0.6      0.0          0.9          1.00
+breast      0.0       0.8      0.0          1.0          0.90
+spambase    0.1       0.8      0.6          0.4          0.87
+adult       1.0       0.8      1.0          0.8          0.71
+bank        0.3       0.0      0.1          0.3          0.58
+
+==============================================================================
+B. Type-I error against the purity of the approximated positive set
+  ks      r = -0.668 (p = 0.218) over 5 datasets
+  nb_auc  r = -0.631 (p = 0.254) over 5 datasets
+
+==============================================================================
+C. Test rejection vs. actual degradation of SCAR-based classifiers
+
+mean balanced-accuracy drop vs. SCAR reference, by mechanism:
+mechanism  sar_attr  sar_extreme  sar_gap
+dataset                                  
+adult         0.002        0.000    0.002
+bank         -0.000        0.021   -0.018
+breast        0.022        0.081    0.002
+mushroom     -0.002        0.039   -0.000
+spambase      0.028        0.131   -0.022
+
+KS rejection rate on the same cells:
+mechanism  sar_attr  sar_extreme  sar_gap
+dataset                                  
+adult           0.7          0.7      1.0
+bank            0.0          0.0      0.5
+breast          0.9          1.0      0.0
+mushroom        0.6          1.0      0.1
+spambase        1.0          1.0      1.0
+
+correlation(rejection rate, accuracy drop) = +0.342 (p = 0.064), n = 30 cells
+  restricted to the three datasets where the test holds its size: r = +0.428 (p = 0.076), n = 18

@@ -1,0 +1,3 @@
+underestimate_factor,overestimate_factor,overestimate_at_least_as_accurate,paired_cells,proportion,mean_bacc_difference,independent_dataset_units
+0.75,1.25,46,50,0.92,0.057101999999999986,5
+0.5,1.5,50,50,1.0,0.257056,5

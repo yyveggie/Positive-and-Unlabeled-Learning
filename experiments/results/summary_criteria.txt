@@ -1,0 +1,68 @@
+7200 runs over 300 cells, 24 configurations each
+
+==============================================================================
+A. Cost of each criterion (mean over 5 datasets x 2 c x 5 seeds x 6 methods)
+   gap_*   = oracle selection minus this criterion
+   regret  = best configuration in the grid minus this criterion
+   agree   = fraction of cells where it picks the oracle's configuration
+
+                               f1    bacc  gap_f1  gap_bacc  regret_f1   agree
+criterion                                                                     
+Lee-Liu                    0.7617  0.8546  0.0106    0.0057     0.0197  0.4367
+PU-AUC                     0.7192  0.8245  0.0531    0.0358     0.0622  0.1367
+nnPU risk (est. prior)     0.7664  0.8602  0.0059    0.0001     0.0150  0.2767
+estimated F1 (est. prior)  0.7627  0.8579  0.0097    0.0024     0.0188  0.4333
+nnPU risk (true prior)     0.7289  0.8253  0.0434    0.0350     0.0525  0.1467
+estimated F1 (true prior)  0.7625  0.8523  0.0098    0.0080     0.0189  0.4533
+ORACLE (labeled val)       0.7723  0.8603  0.0000    0.0000     0.0091  1.0000
+
+==============================================================================
+B. Test F1 gap to oracle, per method
+        Lee-Liu  PU-AUC  nnPU risk (est. prior)  estimated F1 (est. prior)  nnPU risk (true prior)  estimated F1 (true prior)
+method                                                                                                                       
+uasn     0.0124  0.0597                  0.0103                     0.0114                  0.1059                     0.0141
+wce      0.0104  0.0999                  0.0119                     0.0123                  0.0472                     0.0070
+en       0.0088  0.0447                  0.0035                     0.0053                  0.0380                     0.0098
+upu      0.0158  0.0644                  0.0044                     0.0131                  0.0234                     0.0134
+nnpu     0.0118  0.0477                  0.0044                     0.0076                  0.0344                     0.0111
+imbpu    0.0046  0.0021                  0.0012                     0.0083                  0.0113                     0.0036
+
+==============================================================================
+C. Stopping epoch each criterion prefers (oracle mean in the last column)
+        Lee-Liu  PU-AUC  nnPU risk (est. prior)  estimated F1 (est. prior)  nnPU risk (true prior)  estimated F1 (true prior)  ORACLE (labeled val)
+method                                                                                                                                             
+uasn       14.0    21.5                    14.7                       13.7                    24.8                       15.1                  15.6
+wce        23.4    23.9                    24.4                       23.3                    33.4                       26.0                  27.3
+en         18.4    21.5                    14.7                       17.9                    24.8                       18.1                  19.1
+upu        26.6    24.0                    28.6                       27.1                    29.8                       27.1                  22.3
+nnpu       33.4    28.5                    37.2                       33.4                    31.0                       34.4                  28.8
+imbpu      26.7    27.7                    24.9                       22.2                    33.9                       27.5                  25.1
+
+==============================================================================
+D. Does the prior estimate spoil the two criteria that need one?
+          alpha_true  alpha_hat  ratio
+dataset                               
+adult          0.248      0.492  1.981
+bank           0.118      0.409  3.473
+breast         0.372      0.436  1.172
+mushroom       0.482      0.482  1.000
+spambase       0.394      0.537  1.363
+  nnPU risk (est. prior)     gap 0.0059   with the true prior 0.0434   difference -0.0374   (paired: +0.0374, wins 153/300, p = 1.1e-21)
+  estimated F1 (est. prior)  gap 0.0097   with the true prior 0.0098   difference -0.0002   (paired: +0.0002, wins 35/300, p = 0.76)
+
+==============================================================================
+F. Paired tests against Lee-Liu, the criterion the survey used throughout
+
+f1:
+  PU-AUC                     mean difference -0.0425   wins 78/300   Wilcoxon p = 5.4e-14
+  nnPU risk (est. prior)     mean difference +0.0047   wins 109/300   Wilcoxon p = 0.048
+  estimated F1 (est. prior)  mean difference +0.0010   wins 29/300   Wilcoxon p = 0.25
+  nnPU risk (true prior)     mean difference -0.0327   wins 67/300   Wilcoxon p = 4.6e-13
+  estimated F1 (true prior)  mean difference +0.0008   wins 18/300   Wilcoxon p = 0.17
+
+bacc:
+  PU-AUC                     mean difference -0.0301   wins 82/300   Wilcoxon p = 3.6e-11
+  nnPU risk (est. prior)     mean difference +0.0056   wins 116/300   Wilcoxon p = 0.00011
+  estimated F1 (est. prior)  mean difference +0.0033   wins 37/300   Wilcoxon p = 3.5e-06
+  nnPU risk (true prior)     mean difference -0.0293   wins 59/300   Wilcoxon p = 8.3e-17
+  estimated F1 (true prior)  mean difference -0.0023   wins 8/300   Wilcoxon p = 0.011

@@ -1,0 +1,2 @@
+separation,alpha_true,mechanism,seed,estimator,alpha_hat,abs_error,signed_error,relative_error,oracle_auc,n_positive,n_unlabeled,seconds,status,error
+4.0,0.1,SCAR,0,TIcE,0.2562958029009663,0.1562958029009663,0.1562958029009663,1.562958029009663,0.9972393961179008,200,600,0.26299214363098145,ok,

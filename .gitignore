@@ -1,0 +1,49 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+.DS_Store
+.cursor/
+.kiro/
+.vscode/
+.idea/
+
+*.aux
+*.log
+*.out
+*.toc
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Manuscript, supplement, figures and their sources
+paper/
+algorithms/
+systematic_review/
+tools/
+output/
+*.pptx
+R0-Review.txt
+survey-*.md
+*.pdf
+
+# Working notes and design documents
+experiments/*.md
+reproducibility/README.md
+reproducibility/CLAIM_EVIDENCE.md
+.backup_before_arxiv_prune/
+
+# Scripts that build manuscript artifacts rather than run experiments
+reproducibility/build_reproducibility_artifacts.py
+reproducibility/create_reviewer_bundle.py
+reproducibility/verify_pseudocode.py
+reproducibility/generated/
+
+# Third-party sources and large derived inputs, rebuilt locally
+experiments/external/
+experiments/features/

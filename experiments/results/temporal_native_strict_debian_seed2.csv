@@ -1,0 +1,21 @@
+dataset,seed,method,implementation,prior_source,selection_criterion,selected,lr,wd,cfg,alpha_train_bbe,alpha_val_bbe,n_train_p,n_train_u,n_val_p,n_val_u,n_test,n_test_events,event_rate,crit_nnpurisk,crit_leeliu,crit_puauc,auc,ap,recall_at_1pct,precision_at_1pct,enrichment_at_1pct,recall_at_5pct,precision_at_5pct,enrichment_at_5pct,secs
+debian,2,uasn,loss-level reproduction,none,Lee-Liu (P/U only),1,0.01,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,0.004501,-0.846655,0.024445,0.524581,0.535326,0.00601,0.02381,0.010714,2.380272,0.071429,0.006429,1.428163,4.97
+debian,2,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.845766,0.011833,0.502958,,,,,,,,,4.93
+debian,2,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.864714,0.002746,0.485877,,,,,,,,,4.76
+debian,2,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.866808,0.003009,0.491476,,,,,,,,,4.84
+debian,2,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.87037,0.003732,0.555247,,,,,,,,,4.67
+debian,2,wce,loss-level reproduction,none,Lee-Liu (P/U only),1,0.01,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,0.004501,-0.781054,0.07924,0.550584,0.597688,0.006894,0.039683,0.017857,3.96712,0.095238,0.008571,1.904218,4.62
+debian,2,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.851672,0.019827,0.509074,,,,,,,,,6.47
+debian,2,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.806477,0.075328,0.498265,,,,,,,,,8.3
+debian,2,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.01,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,0.004501,-0.81365,0.128977,0.511269,0.543266,0.005839,0.031746,0.014286,3.173696,0.134921,0.012143,2.697642,8.51
+debian,2,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.849385,0.019944,0.582117,,,,,,,,,8.11
+debian,2,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.842293,0.051556,0.60026,,,,,,,,,7.86
+debian,2,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.834918,0.091891,0.596924,,,,,,,,,7.99
+debian,2,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.670402,0.385124,0.551201,,,,,,,,,8.03
+debian,2,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.663245,0.379674,0.588135,,,,,,,,,7.67
+debian,2,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.575254,0.550958,0.661549,,,,,,,,,8.92
+debian,2,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.001,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,0.004501,-0.565004,0.627288,0.650503,0.67295,0.009422,0.015873,0.007143,1.586848,0.150794,0.013571,3.015011,8.97
+debian,2,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.532893,0.754727,0.597883,,,,,,,,,8.18
+debian,2,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.01,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,0.004501,-0.47224,0.941102,0.658064,0.688534,0.009278,0.031746,0.014286,3.173696,0.111111,0.01,2.221587,8.45
+debian,2,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.520176,0.753426,0.655198,,,,,,,,,8.6
+debian,2,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0001,,0.232673,0.86522,2732,28143,151,27992,27992,126,,-0.521759,0.720658,0.652783,,,,,,,,,8.43

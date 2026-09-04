@@ -1,0 +1,25 @@
+dataset,seed,method,implementation,prior_source,selection_criterion,selected,lr,wd,cfg,alpha_train_bbe,alpha_val_bbe,n_train_p,n_train_u,n_val_p,n_val_u,n_test,n_test_events,event_rate,crit_nnpurisk,crit_leeliu,crit_puauc,auc,ap,recall_at_1pct,precision_at_1pct,enrichment_at_1pct,recall_at_5pct,precision_at_5pct,enrichment_at_5pct,secs
+swissprot,1,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.466764,0.593609,0.671303,,,,,,,,,1.96
+swissprot,1,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.431114,0.557961,0.680938,,,,,,,,,1.37
+swissprot,1,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.32659,0.759469,0.685471,,,,,,,,,1.65
+swissprot,1,uasn,loss-level reproduction,none,Lee-Liu (P/U only),1,0.001,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,0.006647,-0.322825,0.82294,0.690412,0.712903,0.014949,0.017391,0.011561,1.73913,0.147826,0.019653,2.956522,1.62
+swissprot,1,wce,loss-level reproduction,none,Lee-Liu (P/U only),1,0.01,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,0.006647,-0.191784,1.295853,0.71209,0.696614,0.012948,0.017391,0.011561,1.73913,0.121739,0.016185,2.434783,1.42
+swissprot,1,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.280386,0.979641,0.665673,,,,,,,,,1.73
+swissprot,1,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.235727,1.240171,0.696168,,,,,,,,,1.52
+swissprot,1,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.238309,1.251829,0.694686,,,,,,,,,1.79
+swissprot,1,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.231507,1.17833,0.697538,,,,,,,,,1.48
+swissprot,1,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.21522,1.2107,0.706734,,,,,,,,,1.79
+swissprot,1,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.187455,1.23566,0.693518,,,,,,,,,1.77
+swissprot,1,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.001,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,0.006647,-0.184361,1.305405,0.692566,0.69208,0.012011,0.0,0.0,0.0,0.095652,0.012717,1.913043,1.37
+swissprot,1,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.179588,1.204375,0.669408,,,,,,,,,1.7
+swissprot,1,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.14959,1.318162,0.688593,,,,,,,,,1.76
+swissprot,1,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.001,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,0.006647,-0.14159,1.365858,0.690321,0.694791,0.012269,0.008696,0.00578,0.869565,0.13913,0.018497,2.782609,1.52
+swissprot,1,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.154686,1.305779,0.691931,,,,,,,,,1.78
+swissprot,1,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.190974,1.190716,0.678088,,,,,,,,,1.56
+swissprot,1,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.173124,1.26166,0.670882,,,,,,,,,1.49
+swissprot,1,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.001,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,0.006647,-0.147743,1.319249,0.693202,0.695619,0.012182,0.008696,0.00578,0.869565,0.130435,0.017341,2.608696,1.65
+swissprot,1,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.149134,1.308339,0.693832,,,,,,,,,1.49
+swissprot,1,cvir_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.205044,1.121904,0.667534,,,,,,,,,1.02
+swissprot,1,cvir_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.01,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,0.006647,-0.176466,1.240393,0.671942,0.695801,0.012253,0.008696,0.00578,0.869565,0.078261,0.010405,1.565217,1.13
+swissprot,1,cvir_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.185564,1.232045,0.678904,,,,,,,,,1.3
+swissprot,1,cvir_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0001,,0.507182,0.568589,3006,17427,96,17307,17300,115,,-0.194059,1.232325,0.677049,,,,,,,,,1.05

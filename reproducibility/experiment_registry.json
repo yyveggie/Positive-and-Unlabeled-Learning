@@ -1,0 +1,304 @@
+{
+  "schema_version": "1.0",
+  "frozen_at": "2026-08-15",
+  "information_boundary": {
+    "training_observables": ["features X", "positive/unlabeled indicator s", "declared class prior or propensity information when the condition permits it"],
+    "forbidden_for_model_selection": ["validation y", "test y", "test metrics"],
+    "primary_selection_rule": "maximize Lee--Liu r^2/Pr_U(score>threshold) on the P/U validation split",
+    "selection_implementation": [
+      "experiments/src/pu_lib.py::criteria_from_scores",
+      "experiments/src/pu_lib.py::lee_liu",
+      "reproducibility/pu_only_selection.py"
+    ],
+    "oracle_columns": "crit_oraclef1 and best-threshold test metrics are diagnostic only and are never used for headline configuration selection"
+  },
+  "shared_tabular_protocol": {
+    "datasets": ["breast", "spambase", "mushroom", "adult", "bank"],
+    "data_versions": {
+      "breast": "sklearn.datasets.load_breast_cancer bundled data",
+      "spambase": "OpenML spambase version 1",
+      "mushroom": "OpenML mushroom version 1",
+      "adult": "OpenML adult version 2 after dropna",
+      "bank": "OpenML bank-marketing version 1"
+    },
+    "max_rows": 8000,
+    "subsampling": "numpy.default_rng(seed).choice without replacement when n>max_rows",
+    "split": "stratified 60% train / 20% validation / 20% test; both train_test_split calls use random_state=seed",
+    "normalization": "featurewise train mean and standard deviation; epsilon 1e-9",
+    "training_positive_holdout": "last max(1,floor(|P_train|/5)) labeled positives; used only by Elkan--Noto",
+    "validation_PU_seed": "seed+1000",
+    "model_rng": "torch.manual_seed(seed)",
+    "default_network": "MLP d-64-64-1 with ReLU",
+    "default_batch_size": 512,
+    "default_optimizer": "Adam"
+  },
+  "official_grids": {
+    "vpu_off": {
+      "grid": [
+        {"lr": 0.00003, "lam": 0.03},
+        {"lr": 0.00003, "lam": 0.10},
+        {"lr": 0.00010, "lam": 0.03},
+        {"lr": 0.00010, "lam": 0.10}
+      ],
+      "fixed": {"epochs": 50, "iterations_per_epoch": 30, "batch": 500, "adam_betas": [0.5, 0.99], "lr_halving_period_epochs": 20, "mix_alpha": 0.3},
+      "selection": "lowest variational loss by epoch inside a run; Lee--Liu across the four configurations"
+    },
+    "distpu_off": {
+      "grid": [
+        {"warm_lr": 0.0005, "co_mixup": 5.0},
+        {"warm_lr": 0.0005, "co_mixup": 2.0},
+        {"warm_lr": 0.0010, "co_mixup": 5.0},
+        {"warm_lr": 0.0010, "co_mixup": 2.0}
+      ],
+      "fixed": {"warm_epochs": 60, "pu_epochs": 60, "batch": 256, "co_mu": 0.002, "co_entropy_max": 0.004, "co_mix_entropy": 0.04, "mix_beta": 6.0, "warm_weight_decay": 0.005, "mixup_lr": 0.00005, "mixup_weight_decay": 0.001},
+      "selection": "final epoch inside a run to prevent test-label leakage; Lee--Liu across the four configurations"
+    },
+    "holistic_off": {
+      "grid": [
+        {"lr": 0.001, "warm_epochs": 10},
+        {"lr": 0.001, "warm_epochs": 20},
+        {"lr": 0.002, "warm_epochs": 10},
+        {"lr": 0.002, "warm_epochs": 20}
+      ],
+      "fixed": {"fine_tune_epochs": 30, "batch": 50, "optimizer": "SGD", "momentum": 0.9, "nesterov": true, "dropout": 0.25},
+      "selection": "Lee--Liu across the four configurations"
+    }
+  },
+  "tracks": [
+    {
+      "id": "main_tabular_classical",
+      "purpose": "Classical and risk-estimator part of the twelve-method controlled comparison",
+      "runner": "experiments/src/run_p1.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_p1.py --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/p1_results.csv",
+      "expected_rows": 2400,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "mechanism": ["scar"], "c": [0.1, 0.3, 0.5, 0.7], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "en", "upu", "nnpu", "tice_nnpu"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]},
+      "fixed": {"epochs": 50, "hidden": 64, "batch": 512},
+      "note": "The historical tice_nnpu column is retained for audit but is not a headline method after the TIcE convention audit."
+    },
+    {
+      "id": "main_tabular_bbe_nnpu",
+      "purpose": "BBE-to-nnPU replacement column",
+      "runner": "experiments/src/run_next.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_next.py p15 --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/p15_results.csv",
+      "expected_rows": 400,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "c": [0.1, 0.3, 0.5, 0.7], "seed": [0, 1, 2, 3, 4], "method": ["bbe_nnpu"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]},
+      "fixed": {"epochs": 50, "hidden": 64, "BBE_delta": 0.1, "BBE_score_quantiles": 96}
+    },
+    {
+      "id": "main_tabular_modern_loss_ports",
+      "purpose": "Modern loss-level methods on the shared tabular protocol",
+      "runner": "experiments/src/run_ext.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_ext.py ext --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/ext_results.csv",
+      "expected_rows": 2000,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "c": [0.1, 0.3, 0.5, 0.7], "seed": [0, 1, 2, 3, 4], "method": ["imbpu", "vpu", "distpu", "cvir", "bbe_cvir"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]},
+      "fixed": {"epochs": 50, "hidden": 64}
+    },
+    {
+      "id": "main_tabular_official",
+      "purpose": "Official VPU, Dist-PU, and HolisticPU adapters with equal four-point budgets",
+      "runner": "experiments/src/run_official_grid.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_official_grid.py tab --seeds 0 1 2 3 4 --methods vpu_off distpu_off holistic_off",
+      "canonical_results": "experiments/results/officialgrid_results.csv",
+      "result_filter": "phase=tab",
+      "expected_rows_in_file": 1320,
+      "expected_rows_after_filter": 1200,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "c": [0.1, 0.3, 0.5, 0.7], "seed": [0, 1, 2, 3, 4], "method": ["vpu_off", "distpu_off", "holistic_off"]},
+      "search_space": "official_grids"
+    },
+    {
+      "id": "mnist_control",
+      "purpose": "Even-versus-odd MNIST implementation control",
+      "runners": ["experiments/src/run_ext.py", "experiments/src/run_official_grid.py"],
+      "commands": ["experiments/.venv/bin/python experiments/src/run_ext.py mnist --seeds 0 1 2 3 4", "experiments/.venv/bin/python experiments/src/run_official_grid.py mnist --seeds 0 1 2 3 4 --methods vpu_off distpu_off holistic_off"],
+      "canonical_results": ["experiments/results/mnist_results.csv", "experiments/results/officialgrid_results.csv"],
+      "expected_rows": {"mnist_results.csv": 220, "officialgrid_phase_mnist": 120},
+      "factors": {"dataset": ["mnist20k"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4]},
+      "search_space": {"loss_ports": [{"learning_rate": 0.001, "weight_decay": 0.0}, {"learning_rate": 0.0001, "weight_decay": 0.0001}], "official": "official_grids"},
+      "fixed": {"epochs_loss_ports": 30, "hidden": 128, "max_rows": 20000}
+    },
+    {
+      "id": "selection_criteria_enlarged",
+      "purpose": "Compare four PU-computable criteria and oracle diagnostics in a 24-configuration space",
+      "runner": "experiments/src/run_criteria.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_criteria.py --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/crit_results.csv",
+      "expected_rows": 7200,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "en", "upu", "nnpu", "imbpu"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001], "hidden": [32, 128], "checkpoint_epoch": [10, 25, 50]},
+      "selection_criteria": ["crit_leeliu", "crit_puauc", "crit_nnpurisk", "crit_f1hat"],
+      "fixed": {"batch": 512}
+    },
+    {
+      "id": "oracle_gap_enlarged",
+      "purpose": "PU-only versus oracle selection gap under the same 24-point space",
+      "runner": "experiments/src/run_next.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_next.py p2 --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/p2_results.csv",
+      "expected_rows": 6000,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "en", "upu", "nnpu"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001], "hidden": [32, 128], "checkpoint_epoch": [10, 25, 50]},
+      "fixed": {"batch": 512}
+    },
+    {
+      "id": "prior_misspecification",
+      "purpose": "Risk-estimator sensitivity to prior under- and overestimation",
+      "runner": "experiments/src/run_next.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_next.py e3 --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/e3_results.csv",
+      "expected_rows": 1000,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "c": [0.5], "seed": [0, 1, 2, 3, 4], "method": ["upu", "nnpu"], "prior_multiplier": [0.5, 0.75, 1.0, 1.25, 1.5]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]},
+      "fixed": {"epochs": 50, "hidden": 64}
+    },
+    {
+      "id": "sar_fixed_threshold",
+      "purpose": "Constructed SAR stress test",
+      "runner": "experiments/src/run_next.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_next.py e4 --seeds 0 1 2",
+      "canonical_results": "experiments/results/e4_results.csv",
+      "expected_rows": 1800,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "mechanism": ["sar_attr", "sar_gap", "sar_extreme"], "c": [0.3, 0.5], "seed": [0, 1, 2], "method": ["uasn", "wce", "en", "upu", "nnpu"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]},
+      "fixed": {"epochs": 50, "hidden": 64}
+    },
+    {
+      "id": "sar_calibration",
+      "purpose": "Matched ranking, threshold, and calibration diagnostics",
+      "runner": "experiments/src/run_calib.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_calib.py --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/calib_results.csv",
+      "expected_rows": 5600,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "mechanism": ["scar", "sar_attr", "sar_gap", "sar_extreme"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "en", "upu", "nnpu", "imbpu", "cvir"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]},
+      "fixed": {"epochs": 50, "hidden": 64, "ECE_bins": 15}
+    },
+    {
+      "id": "sar_em",
+      "purpose": "Official SAR-EM and capacity-matched released baselines",
+      "runner": "experiments/src/run_sarem.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_sarem.py --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/sarem_results.csv",
+      "planned_rows": 1000,
+      "observed_rows": 990,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "mechanism": ["scar", "sar_indep", "sar_attr", "sar_gap", "sar_extreme"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4], "method_spec": ["neg/-", "scar_c/-", "sar_em/oracle", "sar_em/all"]},
+      "search_space": "No hyperparameter search; released defaults and two predeclared propensity-attribute specifications",
+      "known_failure": "Ten SAR-EM rows (oracle and all for five seeds) fail numerically in Adult/sar_gap/c=0.5 and remain unimputed."
+    },
+    {
+      "id": "scar_tests",
+      "purpose": "SCAR diagnostic behavior under controlled mechanisms",
+      "runner": "experiments/src/run_scar_test.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_scar_test.py test",
+      "canonical_results": "experiments/results/scartest_results.csv",
+      "expected_rows": 400,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "mechanism": ["scar", "sar_attr", "sar_gap", "sar_extreme"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4], "statistic": ["ks", "nb_auc"]},
+      "fixed": {"permutations": 200}
+    },
+    {
+      "id": "rare_coarse_and_fraud",
+      "purpose": "Coarse rare-class sweep and natural credit-card fraud stress test",
+      "runner": "experiments/src/run_e5.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_e5.py both --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/e5_results.csv",
+      "expected_rows": 3360,
+      "factors": {"sweep_dataset": ["spambase", "adult"], "sweep_prior": [0.10, 0.05, 0.02], "fraud_dataset": ["creditcard OpenML version 1; max_rows 30000"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "en", "upu", "nnpu", "imbpu", "cvir", "bbe_nnpu", "bbe_cvir", "vpu_off", "distpu_off", "holistic_off"]},
+      "search_space": {"self_implemented": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]}, "official": "official_grids"},
+      "fixed": {"sweep_epochs": 50, "fraud_epochs": 30, "hidden": 64}
+    },
+    {
+      "id": "frozen_representation",
+      "purpose": "Raw features versus two frozen encoders",
+      "runner": "experiments/src/run_e6.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_e6.py --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/e6_results.csv",
+      "expected_rows": 1280,
+      "factors": {"task_representation": ["cifar/cifar_raw", "cifar/cifar_clip", "news/news_tfidf", "news/news_minilm"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "en", "upu", "nnpu", "imbpu", "cvir", "bbe_nnpu"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]},
+      "fixed": {"epochs": 30, "hidden": 64}
+    },
+    {
+      "id": "graph_message_passing",
+      "purpose": "Capacity-matched MLP versus GCN under controlled rewiring",
+      "runner": "experiments/src/run_graph.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_graph.py --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/graph_results.csv",
+      "expected_rows": 2880,
+      "factors": {"dataset": ["cora", "citeseer"], "rewire_fraction": [0.0, 0.4, 0.8], "backbone": ["mlp", "gcn"], "c": [0.1, 0.5], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "nnpu", "imbpu", "cvir", "bbe_nnpu"]},
+      "search_space": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0005]},
+      "fixed": {"epochs": 100, "hidden": 64, "dropout": 0.5}
+    },
+    {
+      "id": "native_static_swissprot",
+      "purpose": "Legacy native-PU diagnostic on a fixed Swiss-Prot snapshot",
+      "runner": "experiments/src/run_native.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_native.py --seeds 0 1 2 3 4 --official vpu_off distpu_off holistic_off",
+      "canonical_results": "experiments/results/native_results.csv",
+      "expected_rows": 340,
+      "factors": {"seed": [0, 1, 2, 3, 4], "main_methods": ["uasn", "wce", "en", "upu", "nnpu", "imbpu", "cvir", "bbe_nnpu", "bbe_cvir", "vpu_off", "distpu_off", "holistic_off"], "prior_multiplier": [0.5, 0.75, 1.0, 1.25, 1.5]},
+      "search_space": {"self_implemented": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]}, "official": "official_grids"},
+      "fixed": {"epochs": 50, "split": "stratified 60/20/20 by y while preserving observed s"}
+    },
+    {
+      "id": "class_prior_factorial",
+      "purpose": "Estimator error across prevalence, separation, and labeling mechanism",
+      "runner": "experiments/src/run_prior_estimation_track.py",
+      "command": "for SEED in 0 1 2 3 4; do experiments/.venv/bin/python experiments/src/run_prior_estimation_track.py --seeds $SEED --out experiments/results/prior_estimation_seed${SEED}.csv; done; experiments/.venv/bin/python experiments/src/summarize_prior_estimation_track.py",
+      "canonical_results": "experiments/results/prior_estimation_track.csv",
+      "expected_rows": 1200,
+      "factors": {"separation": [0.5, 1.0, 2.0, 4.0], "alpha": [0.02, 0.05, 0.10, 0.30], "mechanism": ["SCAR", "SAR-attribute", "SAR-gap"], "seed": [0, 1, 2, 3, 4], "estimator": ["BBE", "DEDPUL", "TIcE", "KM1", "KM2"]},
+      "search_space": {"common_discriminator": {"folds": 5, "model": "balanced logistic regression", "solver": "lbfgs", "max_iter": 2000}, "DEDPUL": {"bw_mix": 0.05, "bw_pos": 0.1, "kde_mode": "logit", "threshold": "mid", "MT_coef": 0.25}, "TIcE": {"k": 10, "folds": 10, "delta": 0.2, "iterations": 2, "max_splits": 500, "minT": 10, "n_splits": 40}, "KM1_KM2": {"lambda_lower": 1.0, "lambda_upper": 8.0}, "BBE": {"delta": 0.1}},
+      "fixed": {"n_positive": 200, "n_unlabeled": 600, "dimension": 10, "cell_seed_formula": "seed + round(separation*1000)*100 + round(alpha*1000)*10000"}
+    },
+    {
+      "id": "propensity_weighted",
+      "purpose": "Probabilistic-gap propensity estimation and IPW risk",
+      "runner": "experiments/src/run_propensity_weighted_track.py",
+      "command": "for SEED in 0 1 2 3 4; do experiments/.venv/bin/python experiments/src/run_propensity_weighted_track.py --seeds $SEED --out experiments/results/propensity_weighted_seed${SEED}.csv; done; experiments/.venv/bin/python experiments/src/summarize_propensity_weighted_track.py",
+      "canonical_results": "experiments/results/propensity_weighted_track.csv",
+      "expected_rows": 250,
+      "factors": {"dataset": ["breast", "spambase", "mushroom", "adult", "bank"], "mechanism": ["scar", "sar_indep", "sar_attr", "sar_gap", "sar_extreme"], "c": [0.3, 0.5], "seed": [0, 1, 2, 3, 4], "method": ["pg_ipw"]},
+      "search_space": "No outcome-guided search",
+      "fixed": {"posterior_folds": 5, "posterior_model": "HistGradientBoostingClassifier", "posterior_learning_rate": 0.05, "posterior_max_iter": 150, "posterior_max_leaf_nodes": 15, "posterior_min_samples_leaf": 20, "posterior_l2": 1.0, "posterior_validation_fraction": 0.15, "risk_steps_max": 1200, "risk_learning_rate": 0.02, "risk_l2": 0.001, "risk_early_stop_after_step": 300, "risk_patience": 150, "propensity_clip": [0.001, 1.0]}
+    },
+    {
+      "id": "rare_dense",
+      "purpose": "Locked-configuration dense rare-positive transition panel",
+      "runner": "experiments/src/run_rare_dense_track.py",
+      "command": "for SEED in 0 1 2 3 4; do experiments/.venv/bin/python experiments/src/run_rare_dense_track.py --seeds $SEED --out experiments/results/rare_dense_seed${SEED}.csv; done; experiments/.venv/bin/python experiments/src/summarize_rare_dense_track.py",
+      "canonical_results": "experiments/results/rare_dense_track.csv",
+      "expected_rows": 720,
+      "factors": {"dataset": ["spambase", "adult", "bank", "mushroom"], "target_prior": [0.10, 0.075, 0.05, 0.03, 0.02, 0.01], "c": [0.5], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "nnpu", "imbpu", "cvir", "bbe_cvir"]},
+      "search_space": "Locked before this track from the modal PU-only choices in the coarse sweep",
+      "locked_config": {"uasn": {"lr": 0.001, "wd": 0.0}, "wce": {"lr": 0.01, "wd": 0.0001}, "nnpu": {"lr": 0.01, "wd": 0.0}, "imbpu": {"lr": 0.01, "wd": 0.0}, "cvir": {"lr": 0.01, "wd": 0.0}, "bbe_cvir": {"lr": 0.001, "wd": 0.0}},
+      "fixed": {"epochs": 50, "max_rows": 8000, "split": "stratified 75% train / 25% test", "P_U_relation": "disjoint SCAR P and U pools"}
+    },
+    {
+      "id": "end_to_end_vision",
+      "purpose": "Raw-pixel learned encoders under three PU objectives",
+      "runner": "experiments/src/run_end_to_end_vision_track.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_end_to_end_vision_track.py --datasets cifar10 fashionmnist --seeds 0 1 2 --cifar-backbone cnn7 --out experiments/results/end_to_end_vision_track.csv",
+      "canonical_results": "experiments/results/end_to_end_vision_track.csv",
+      "expected_rows": 18,
+      "factors": {"dataset": ["cifar10", "fashionmnist"], "seed": [0, 1, 2], "method": ["uasn_e2e", "nnpu_e2e", "holistic_e2e"], "c": [0.2]},
+      "search_space": "None; schedules fixed before the final run",
+      "fixed": {"CIFAR10_learning_rate": 0.0015, "FashionMNIST_learning_rate": 0.002, "batch": 64, "baseline_epochs": 20, "holistic_warm_epochs": 8, "holistic_finetune_epochs": 12, "workers": 0, "CIFAR10_backbone": "HolisticPU CNN7", "FashionMNIST_backbone": "HolisticPU LeNet", "optimizer": "SGD with released weight-decay grouping", "schedule": "per-step cosine", "evaluation": "final epoch on official test split"}
+    },
+    {
+      "id": "temporal_native",
+      "purpose": "Prospective time-indexed Swiss-Prot and Debian cohorts",
+      "runner": "experiments/src/run_temporal_native.py",
+      "command": "experiments/.venv/bin/python experiments/src/run_temporal_native.py --datasets debian swissprot --seeds 0 1 2 3 4",
+      "canonical_results": "experiments/results/temporal_native_results.csv",
+      "expected_rows": 360,
+      "factors": {"dataset": ["debian", "swissprot"], "seed": [0, 1, 2, 3, 4], "method": ["uasn", "wce", "upu_bbe", "nnpu_bbe", "imbpu_bbe", "cvir_bbe", "vpu_off", "distpu_bbe_off", "holistic_off"]},
+      "search_space": {"self_implemented": {"learning_rate": [0.01, 0.001], "weight_decay": [0.0, 0.0001]}, "official": "official_grids"},
+      "fixed": {"epochs_self_implemented": 50, "cohort_protocol": "experiments/features/native_temporal/experiment_protocol.json", "cohort_provenance": "experiments/features/native_temporal/provenance.json", "prior": "BBE estimated separately on t0 train and t1 P/U validation sets", "selection": "Lee--Liu on t1 P/U only", "test": "first confirmations in the subsequent frozen interval"}
+    }
+  ]
+}

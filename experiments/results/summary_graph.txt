@@ -1,0 +1,78 @@
+2880 runs, 720 after PU-only selection
+edge homophily by rewiring level:
+dataset   rewire
+citeseer  0.0       0.739
+          0.4       0.442
+          0.8       0.153
+cora      0.0       0.814
+          0.4       0.488
+          0.8       0.166 
+
+==============================================================================
+A. Balanced accuracy, MLP against GCN (mean over datasets, c, seeds)
+rewire      0.0           0.4           0.8       
+backbone    gcn    mlp    gcn    mlp    gcn    mlp
+method                                            
+uasn      0.729  0.605  0.634  0.605  0.560  0.605
+wce       0.777  0.723  0.632  0.723  0.522  0.723
+nnpu      0.850  0.689  0.671  0.689  0.554  0.689
+imbpu     0.862  0.733  0.725  0.733  0.599  0.733
+cvir      0.841  0.672  0.691  0.672  0.587  0.672
+bbe_nnpu  0.871  0.703  0.657  0.703  0.526  0.703
+
+==============================================================================
+B. What propagation is worth, per method (GCN minus MLP)
+rewire      0.0    0.4    0.8           family
+method                                        
+uasn      0.124  0.029 -0.045            naive
+wce       0.055 -0.091 -0.200            naive
+nnpu      0.161 -0.018 -0.135        corrected
+imbpu     0.129 -0.008 -0.134        corrected
+cvir      0.168  0.019 -0.086        corrected
+bbe_nnpu  0.169 -0.046 -0.177  estimated prior
+
+by family:
+rewire             0.0    0.4    0.8
+family                              
+corrected        0.153 -0.002 -0.118
+estimated prior  0.169 -0.046 -0.177
+naive            0.089 -0.031 -0.123
+
+If message passing were doing the work of the correction, the naive
+objectives would gain most; a gap that survives propagation means it is
+not a substitute.
+
+==============================================================================
+C. Class-prior estimation under each backbone
+                ratio       rel_err      
+backbone          gcn   mlp     gcn   mlp
+dataset  rewire                          
+citeseer 0.0     2.07  2.75    1.07  1.75
+         0.4     3.29  2.75    2.29  1.75
+         0.8     4.05  2.75    3.05  1.75
+cora     0.0     1.48  2.32    0.48  1.32
+         0.4     2.31  2.32    1.31  1.32
+         0.8     3.02  2.32    2.02  1.32
+
+relative error averaged over datasets:
+backbone   gcn   mlp
+rewire              
+0.0       0.77  1.53
+0.4       1.80  1.53
+0.8       2.54  1.53
+
+==============================================================================
+D. Does the ranking survive the change of backbone?
+  mlp: imbpu 0.733, wce 0.723, bbe_nnpu 0.703, nnpu 0.689, cvir 0.672, uasn 0.605
+  gcn: imbpu 0.728, cvir 0.706, nnpu 0.692, bbe_nnpu 0.685, wce 0.644, uasn 0.641
+
+==============================================================================
+E. Scarce labeling on graphs (c = 0.1 against c = 0.5, GCN)
+c           0.1    0.5
+method                
+uasn      0.564  0.718
+wce       0.590  0.697
+nnpu      0.671  0.712
+imbpu     0.697  0.760
+cvir      0.652  0.760
+bbe_nnpu  0.658  0.711

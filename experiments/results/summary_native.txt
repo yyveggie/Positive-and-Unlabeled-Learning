@@ -1,0 +1,50 @@
+Swiss-Prot human nuclear localization: alpha = 0.3284, c = 0.5594, 340 runs, 5 seeds
+
+==============================================================================
+A. Test metrics after PU-only model selection (mean over seeds)
+              prior-free   bacc     f1    auc  auprc  f1_bestthr    ece  brier
+method                                                                        
+vpu_off             True  0.708  0.616  0.780  0.604       0.626  0.145  0.209
+holistic_off        True  0.700  0.616  0.775  0.578       0.625  0.346  0.349
+imbpu              False  0.698  0.600  0.761  0.550       0.617  0.276  0.280
+cvir               False  0.697  0.599  0.764  0.578       0.616  0.185  0.237
+distpu_off         False  0.690  0.591  0.752  0.586       0.602  0.125  0.202
+en                 False  0.689  0.600  0.751  0.551       0.604  0.084  0.193
+bbe_nnpu           False  0.684  0.605  0.762  0.529       0.637  0.398  0.395
+wce                 True  0.683  0.599  0.754  0.558       0.607  0.269  0.280
+bbe_cvir           False  0.680  0.601  0.760  0.529       0.630  0.394  0.391
+uasn                True  0.651  0.526  0.752  0.554       0.604  0.083  0.192
+nnpu               False  0.633  0.467  0.755  0.579       0.603  0.269  0.270
+upu                False  0.630  0.459  0.750  0.585       0.589  0.266  0.268
+
+  12 methods in the roster
+
+==============================================================================
+B. Class-prior estimation where nobody chose the prior
+  true alpha      0.3284
+  BBE estimate    0.7387   ratio 2.25
+  relative error  1.25
+
+==============================================================================
+C. Does 'err upward' hold on a dataset we did not construct?
+       bacc     f1    auc    ece
+k                               
+0.50  0.500  0.000  0.605  0.328
+0.75  0.580  0.307  0.759  0.275
+1.00  0.633  0.467  0.755  0.269
+1.25  0.674  0.558  0.747  0.275
+1.50  0.700  0.605  0.760  0.278
+
+  balanced accuracy peaks at k = 1.5 (0.700 against 0.633 at the true prior)
+
+==============================================================================
+D. Is the labeling SCAR? The test's verdict, and the truth
+          p  reject  purity
+stat                       
+kl      0.0     1.0   0.726
+ks      0.0     1.0   0.726
+nb_auc  0.0     1.0   0.726
+
+  ground-truth permutation test on the real partition (3176 labeled positives against 2507 hidden ones):
+    KS = 1.793, null mean 0.501, p = 0.000
+    purity of the reconstructed positive set: 0.726

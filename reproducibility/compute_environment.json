@@ -1,0 +1,21 @@
+{
+  "recorded_on": "2026-08-15",
+  "hardware": {
+    "model": "MacBook Pro Mac15,3",
+    "processor": "Apple M3",
+    "memory_gib": 16,
+    "accelerators": {
+      "tabular_and_classical_tracks": "CPU",
+      "end_to_end_vision": "Apple Metal Performance Shaders (MPS)"
+    }
+  },
+  "operating_system": {
+    "name": "macOS",
+    "version": "27.0",
+    "build": "26A5406e"
+  },
+  "interpreter": "Python 3.14.0",
+  "runtime_semantics": "CSV columns named secs or seconds are per-configuration elapsed wall-clock measurements. Their sums are recorded method-compute, not elapsed project wall time, because shards could run concurrently.",
+  "cross_device_boundary": "Fixed seeds make the design repeatable but do not imply bitwise identity across MPS, CUDA, and CPU kernels.",
+  "source": "experiments/extension_environment.txt"
+}

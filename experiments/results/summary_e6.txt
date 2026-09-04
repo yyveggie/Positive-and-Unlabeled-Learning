@@ -1,0 +1,41 @@
+1280 runs, 320 after PU-only selection
+
+======================================================================
+cifar: balanced accuracy by representation
+kind        raw  pretrained   gain
+method                            
+uasn      0.641       0.672  0.031
+wce       0.753       0.799  0.046
+en        0.734       0.833  0.099
+upu       0.749       0.969  0.220
+nnpu      0.790       0.986  0.196
+imbpu     0.800       0.986  0.185
+cvir      0.804       0.988  0.184
+bbe_nnpu  0.646       0.978  0.333
+
+  spread between best and worst method: raw 0.163 -> pretrained 0.316
+  how far U-as-negative sits behind the best method: raw -0.163 -> pretrained -0.316
+
+======================================================================
+news: balanced accuracy by representation
+kind        raw  pretrained   gain
+method                            
+uasn      0.615       0.628  0.013
+wce       0.665       0.707  0.042
+en        0.741       0.760  0.019
+upu       0.589       0.719  0.130
+nnpu      0.775       0.887  0.112
+imbpu     0.779       0.890  0.111
+cvir      0.766       0.878  0.112
+bbe_nnpu  0.683       0.881  0.198
+
+  spread between best and worst method: raw 0.190 -> pretrained 0.262
+  how far U-as-negative sits behind the best method: raw -0.163 -> pretrained -0.262
+
+======================================================================
+Pooled over both tasks: spread and the naive baseline's deficit
+ task       kind  best  worst  spread  uasn  uasn_deficit
+cifar pretrained 0.988  0.672   0.316 0.672         0.316
+cifar        raw 0.804  0.641   0.163 0.641         0.163
+ news pretrained 0.890  0.628   0.262 0.628         0.262
+ news        raw 0.779  0.589   0.190 0.615         0.163

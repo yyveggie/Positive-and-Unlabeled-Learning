@@ -1,0 +1,22 @@
+MIXED-EFFECTS SENSITIVITY MODELS (maximum likelihood)
+Dataset is the grouping factor; named components are nested/crossed random-intercept variance components.
+
+MAIN TWELVE-METHOD BALANCED-ACCURACY MODEL
+full llf=2011.334416; reduced llf=1994.555984
+global method LRT: chi2=33.556865, df=12, p=0.00079200498
+full converged=True; reduced converged=True
+full variance parameters=[0.002230794195738496]; dataset intercept variance=0.0090947898
+
+MECHANISM FACTORIAL BALANCED-ACCURACY MODEL
+full llf=2669.007295; additive llf=2588.348457; no-mechanism llf=2581.272327
+mechanism main-effect LRT: chi2=14.152259, df=3, p=0.00270506
+method-by-mechanism interaction LRT: chi2=161.317677, df=18, p=4.5997241e-25
+full converged=True; additive converged=True; no-mechanism converged=True
+full variance parameters=[0.0003467626877488083, 0.0007491614529945616]; dataset intercept variance=0.011344753
+
+WARNINGS
+- The MLE may be on the boundary of the parameter space.
+- The MLE may be on the boundary of the parameter space.
+- The MLE may be on the boundary of the parameter space.
+- The MLE may be on the boundary of the parameter space.
+- The MLE may be on the boundary of the parameter space.

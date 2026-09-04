@@ -1,0 +1,59 @@
+2400 rows, datasets=['adult', 'bank', 'breast', 'mushroom', 'spambase'], c=[np.float64(0.1), np.float64(0.3), np.float64(0.5), np.float64(0.7)], seeds=[np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]
+
+======================================================================
+E1  test balanced accuracy, PU-only model selection (mean over c & seeds)
+dataset    adult   bank  breast  mushroom  spambase   MEAN
+method                                                    
+wce        0.760  0.772   0.910     0.977     0.870  0.858
+nnpu       0.719  0.617   0.923     0.996     0.902  0.831
+en         0.701  0.668   0.907     0.888     0.823  0.798
+upu        0.654  0.537   0.904     0.966     0.820  0.776
+tice_nnpu  0.699  0.680   0.716     0.860     0.804  0.752
+uasn       0.656  0.602   0.886     0.794     0.759  0.739
+
+average rank (lower = better):
+method
+wce          2.34
+nnpu         2.56
+en           3.32
+tice_nnpu    3.76
+upu          4.14
+uasn         4.88
+
+Friedman test: chi2=133.6, p=4.19e-27
+
+bacc by label frequency c (rows: method):
+c            0.1    0.3    0.5    0.7
+method                               
+en         0.676  0.797  0.843  0.873
+nnpu       0.817  0.833  0.832  0.843
+tice_nnpu  0.500  0.750  0.871  0.886
+uasn       0.606  0.715  0.792  0.845
+upu        0.694  0.780  0.806  0.824
+wce        0.820  0.856  0.872  0.882
+
+======================================================================
+E2  oracle-selection gap  (test F1 with oracle hp  minus  PU-only hp)
+           gap_f1         gap_bacc        
+             mean     std     mean     std
+method                                    
+en         0.0118  0.0409   0.0072  0.0269
+nnpu       0.0064  0.0238   0.0042  0.0155
+tice_nnpu -0.0000  0.0034   0.0001  0.0026
+uasn       0.0107  0.0379   0.0043  0.0177
+upu        0.0083  0.0325   0.0040  0.0187
+wce        0.0031  0.0169   0.0009  0.0152
+
+positive gap = the method benefited from labels it should not have had
+
+======================================================================
+TIcE prior estimation relative error |a_hat - a|/a, by dataset:
+           mean    std
+dataset               
+adult     1.618  0.895
+bank      4.424  2.604
+breast    1.056  0.529
+mushroom  0.377  0.399
+spambase  0.519  0.609
+
+(rerun with stdout redirect to save: > <REPOSITORY_ROOT>/experiments/results/summary_e1_e2.txt)

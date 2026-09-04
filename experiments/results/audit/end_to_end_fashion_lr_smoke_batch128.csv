@@ -1,0 +1,2 @@
+dataset,seed,method,backbone,device,n_train,n_labeled_positive,n_unlabeled,alpha_unlabeled,c,learning_rate,epochs,warm_epochs,finetune_epochs,bacc,f1,auc,auprc,f1_bestthr,thr_best,precision,recall,pred_rate,ece,brier,selected_positive_rate,selected_positive_f1,secs,status,error
+fashionmnist,0,nnpu_e2e,HolisticPU-LeNet,mps,1000,80,920,0.34782608695652173,0.2,0.002,1,0,0,0.3338333333333333,0.07989187565700556,0.3375629375,0.2985984088352997,0.5723098995695839,0.4772237241268158,0.10003760812335465,0.0665,0.2659,0.09567126667797568,0.2515253096184758,,,2.456035852432251,ok,

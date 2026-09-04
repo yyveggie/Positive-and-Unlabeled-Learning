@@ -1,0 +1,107 @@
+990 runs
+
+==========================================================================
+A. Balanced accuracy by labeling mechanism (mean over datasets, c, seeds)
+mechanism         scar  sar_indep  sar_attr  sar_gap  sar_extreme
+label                                                            
+neg              0.569      0.581     0.590    0.607        0.572
+scar_c           0.737      0.714     0.735    0.754        0.701
+sar_em (oracle)  0.872      0.709     0.695    0.697        0.638
+sar_em (all)     0.720      0.693     0.681    0.697        0.632
+
+==========================================================================
+B. SAR-EM (oracle) minus the SCAR-with-known-c baseline, per dataset
+mechanism   scar  sar_indep  sar_attr  sar_gap  sar_extreme
+dataset                                                    
+adult      0.155      0.012    -0.031   -0.098       -0.030
+bank       0.222      0.040    -0.006   -0.021       -0.025
+breast     0.106      0.003    -0.037   -0.047       -0.044
+mushroom   0.033     -0.078    -0.087   -0.133       -0.159
+spambase   0.156     -0.003    -0.042   -0.041       -0.055
+
+same, with the propensity model given every attribute:
+mechanism   scar  sar_indep  sar_attr  sar_gap  sar_extreme
+dataset                                                    
+adult      0.024      0.017    -0.026   -0.098       -0.021
+bank       0.057      0.059     0.007   -0.021       -0.020
+breast    -0.025     -0.011    -0.028   -0.047       -0.042
+mushroom  -0.116     -0.107    -0.163   -0.133       -0.208
+spambase  -0.025     -0.063    -0.064   -0.041       -0.056
+
+==========================================================================
+C. Does SAR-EM recover the loss that SAR inflicts on the SCAR baseline?
+
+drop from the SCAR-mechanism reference (positive = hurt by the bias):
+          sarem_drop                               scar_drop                              
+mechanism   sar_attr sar_extreme sar_gap sar_indep  sar_attr sar_extreme sar_gap sar_indep
+dataset                                                                                   
+adult          0.166       0.167   0.215     0.154    -0.020      -0.018  -0.038     0.010
+bank           0.214       0.237   0.205     0.184    -0.014      -0.010  -0.039     0.002
+breast         0.163       0.190   0.154     0.149     0.019       0.040   0.000     0.045
+mushroom       0.120       0.277   0.159     0.153     0.001       0.086  -0.006     0.043
+spambase       0.222       0.294   0.196     0.175     0.023       0.083  -0.002     0.016
+
+mean drop  SCAR-c +0.011   SAR-EM +0.190   (n = 20 dataset-mechanism cells)
+
+==========================================================================
+D. Ranking against calibration: is the loss real or is it the threshold?
+
+auc:
+mechanism         scar  sar_indep  sar_attr  sar_gap  sar_extreme
+label                                                            
+neg              0.929      0.914     0.924    0.939        0.915
+scar_c           0.931      0.916     0.925    0.939        0.915
+sar_em (oracle)  0.935      0.922     0.924    0.944        0.914
+sar_em (all)     0.928      0.911     0.916    0.944        0.909
+
+auprc:
+mechanism         scar  sar_indep  sar_attr  sar_gap  sar_extreme
+label                                                            
+neg              0.808      0.780     0.791    0.827        0.777
+scar_c           0.811      0.783     0.791    0.829        0.775
+sar_em (oracle)  0.815      0.795     0.793    0.836        0.775
+sar_em (all)     0.800      0.770     0.776    0.836        0.765
+
+f1_bestthr:
+mechanism         scar  sar_indep  sar_attr  sar_gap  sar_extreme
+label                                                            
+neg              0.797      0.774     0.790    0.810        0.777
+scar_c           0.799      0.776     0.792    0.810        0.778
+sar_em (oracle)  0.804      0.786     0.792    0.825        0.778
+sar_em (all)     0.794      0.770     0.780    0.825        0.772
+
+ece:
+mechanism         scar  sar_indep  sar_attr  sar_gap  sar_extreme
+label                                                            
+neg              0.196      0.197     0.199    0.199        0.219
+scar_c           0.121      0.122     0.133    0.135        0.158
+sar_em (oracle)  0.126      0.126     0.151    0.163        0.183
+sar_em (all)     0.129      0.136     0.150    0.163        0.183
+
+brier:
+mechanism         scar  sar_indep  sar_attr  sar_gap  sar_extreme
+label                                                            
+neg              0.167      0.173     0.168    0.164        0.192
+scar_c           0.107      0.118     0.117    0.108        0.138
+sar_em (oracle)  0.093      0.119     0.132    0.124        0.160
+sar_em (all)     0.118      0.131     0.135    0.124        0.164
+
+==========================================================================
+E. SAR-EM (oracle) minus the SCAR baseline, metric by metric
+              bacc     f1  f1_bestthr    auc  auprc    ece
+mechanism                                                 
+scar         0.135  0.176       0.005  0.003  0.004  0.004
+sar_indep   -0.005 -0.001       0.010  0.005  0.012  0.004
+sar_attr    -0.041 -0.085      -0.000 -0.001  0.001  0.018
+sar_gap     -0.068 -0.129      -0.000 -0.002 -0.006  0.027
+sar_extreme -0.063 -0.131      -0.000 -0.001  0.000  0.025
+
+A negative bacc gap next to a near-zero AUC gap means the two models
+rank alike and differ only in where 0.5 falls; ECE says which is closer
+to being a probability.
+
+EM iterations to convergence (median):
+mechanism  sar_attr  sar_extreme  sar_gap  sar_indep   scar
+prop_spec                                                  
+all           216.0        236.0    279.0      282.0  332.0
+oracle        152.0        112.0    279.0      114.0   52.0

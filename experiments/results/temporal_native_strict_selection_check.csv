@@ -1,0 +1,5 @@
+dataset,seed,method,implementation,prior_source,selection_criterion,selected,lr,wd,cfg,alpha_train_bbe,alpha_val_bbe,n_train_p,n_train_u,n_val_p,n_val_u,n_test,n_test_events,event_rate,crit_nnpurisk,crit_leeliu,crit_puauc,auc,ap,recall_at_1pct,precision_at_1pct,enrichment_at_1pct,recall_at_5pct,precision_at_5pct,enrichment_at_5pct,secs
+debian,0,uasn,loss-level reproduction,none,Lee-Liu (P/U only),1,0.01,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,0.004501,-0.938755,0.221713,0.565706,0.591749,0.008075,0.047619,0.021429,4.760544,0.111111,0.01,2.221587,1.83
+debian,0,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.96153,0.04245,0.533574,,,,,,,,,1.87
+debian,0,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.992176,0.008785,0.489302,,,,,,,,,1.85
+debian,0,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.973325,0.006755,0.504535,,,,,,,,,1.98

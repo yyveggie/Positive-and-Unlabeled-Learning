@@ -1,0 +1,21 @@
+dataset,seed,method,implementation,prior_source,selection_criterion,selected,lr,wd,cfg,alpha_train_bbe,alpha_val_bbe,n_train_p,n_train_u,n_val_p,n_val_u,n_test,n_test_events,event_rate,crit_nnpurisk,crit_leeliu,crit_puauc,auc,ap,recall_at_1pct,precision_at_1pct,enrichment_at_1pct,recall_at_5pct,precision_at_5pct,enrichment_at_5pct,secs
+debian,0,uasn,loss-level reproduction,none,Lee-Liu (P/U only),1,0.01,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,0.004501,-0.938755,0.221713,0.565706,0.591749,0.008075,0.047619,0.021429,4.760544,0.111111,0.01,2.221587,4.87
+debian,0,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.96153,0.04245,0.533574,,,,,,,,,4.94
+debian,0,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.992176,0.008785,0.489302,,,,,,,,,4.71
+debian,0,uasn,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.973325,0.006755,0.504535,,,,,,,,,4.73
+debian,0,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.976224,0.015262,0.560769,,,,,,,,,4.57
+debian,0,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.01,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.895269,0.087952,0.590094,,,,,,,,,5.03
+debian,0,wce,loss-level reproduction,none,Lee-Liu (P/U only),1,0.001,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,0.004501,-0.871257,0.164333,0.552506,0.532392,0.005259,0.007937,0.003571,0.793424,0.071429,0.006429,1.428163,6.53
+debian,0,wce,loss-level reproduction,none,Lee-Liu (P/U only),0,0.001,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.908527,0.112514,0.560419,,,,,,,,,8.33
+debian,0,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.980132,0.04977,0.5155,,,,,,,,,8.48
+debian,0,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.01,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,0.004501,-0.966883,0.142752,0.62996,0.615386,0.008711,0.055556,0.025,5.553968,0.111111,0.01,2.221587,8.13
+debian,0,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.980079,0.036586,0.602238,,,,,,,,,7.92
+debian,0,upu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.979717,0.044196,0.564324,,,,,,,,,7.57
+debian,0,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,,-1.0,0.0,0.643429,,,,,,,,,7.95
+debian,0,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.795987,0.406403,0.617714,,,,,,,,,7.56
+debian,0,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.748104,0.478552,0.624491,,,,,,,,,8.6
+debian,0,nnpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.001,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,0.004501,-0.720942,0.574209,0.651696,0.691832,0.013249,0.071429,0.032143,7.140816,0.18254,0.016429,3.649751,8.75
+debian,0,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),1,0.01,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,0.004501,-0.688741,0.655844,0.583714,0.614138,0.007078,0.031746,0.014286,3.173696,0.126984,0.011429,2.538957,7.66
+debian,0,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.01,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.683019,0.603873,0.635069,,,,,,,,,8.41
+debian,0,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.761131,0.364921,0.598531,,,,,,,,,8.28
+debian,0,imbpu_bbe,loss-level reproduction,BBE(t0 P/U),Lee-Liu (P/U only),0,0.001,0.0001,,0.173993,1.0,2732,28143,151,27992,27992,126,,-0.729219,0.490075,0.61204,,,,,,,,,8.26

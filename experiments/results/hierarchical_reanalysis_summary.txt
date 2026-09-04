@@ -1,0 +1,65 @@
+HIERARCHICAL REANALYSIS SUMMARY
+bootstrap replicates=10000; random seed=20260815
+primary endpoint=test balanced accuracy; highest independent unit=dataset
+
+Observed leader: DC-PU (dcpu)
+No method separated from every competitor under the 66-contrast Holm family.
+
+MAIN METHOD SUMMARIES
+      method         label  mean_bacc  mean_ci95_low  mean_ci95_high  average_dataset_rank worst_dataset  worst_dataset_bacc  leader_minus_method  leader_diff_ci95_low  leader_diff_ci95_high  p_exact  p_holm_pairs
+        dcpu         DC-PU   0.878928       0.805340        0.952880              2.800000         adult            0.778445             0.000000              0.000000               0.000000 1.000000      1.000000
+    bbe_cvir     BBE->CVIR   0.870742       0.800288        0.944507              4.600000          bank            0.778505             0.008186             -0.002838               0.021918 0.125000      1.000000
+       imbpu         ImbPU   0.863997       0.773594        0.952900              4.400000          bank            0.725495             0.014931             -0.001600               0.037104 0.250000      1.000000
+        cvir          CVIR   0.863860       0.769932        0.953759              4.800000          bank            0.718125             0.015068             -0.003419               0.040160 0.437500      1.000000
+    bbe_nnpu     BBE->nnPU   0.861545       0.788423        0.938623              6.600000          bank            0.766115             0.017383              0.001064               0.037035 0.062500      1.000000
+         wce   Weighted CE   0.857693       0.787821        0.931013              7.400000         adult            0.760340             0.021235              0.010877               0.033447 0.062500      1.000000
+  distpu_off       Dist-PU   0.853837       0.752969        0.949513              5.600000          bank            0.691505             0.025091              0.000412               0.058654 0.187500      1.000000
+     vpu_off           VPU   0.852898       0.784268        0.926473              7.800000          bank            0.756285             0.026030              0.008078               0.049534 0.062500      1.000000
+        nnpu          nnPU   0.831311       0.701866        0.948164              6.600000          bank            0.617460             0.047617              0.002919               0.108331 0.125000      1.000000
+holistic_off    HolisticPU   0.818506       0.709962        0.926446              5.800000        breast            0.633885             0.060422             -0.005867               0.184736 0.437500      1.000000
+          en    Elkan-Noto   0.797504       0.705391        0.886161             10.600000          bank            0.667945             0.081424              0.042143               0.123798 0.062500      1.000000
+         upu           uPU   0.776089       0.632103        0.913407             11.800000          bank            0.537250             0.102839              0.036200               0.179870 0.062500      1.000000
+        uasn U-as-negative   0.739362       0.642662        0.837653             12.200000          bank            0.601855             0.139566              0.080898               0.203024 0.062500      1.000000
+
+PAIRWISE MULTIPLICITY
+Holm-significant pairs: 0 / 78
+minimum raw exact p=0.062500; minimum Holm p=1.000000
+
+MIXED MODELS
+main method LRT: chi2=33.5569, df=12, p=0.000792005
+mechanism main-effect LRT: chi2=14.1523, df=3, p=0.00270506
+interaction LRT: chi2=161.3177, df=18, p=4.59972e-25
+
+MECHANISM EFFECTS
+  mechanism     metric  scar_mean  mechanism_mean  effect_vs_scar  ci95_low  ci95_high  p_exact  p_holm_21
+   sar_attr       bacc   0.828043        0.815125       -0.012918 -0.028370   0.000867 0.250000   1.000000
+   sar_attr         f1   0.733693        0.722556       -0.011136 -0.034683   0.012029 0.437500   1.000000
+   sar_attr        auc   0.920515        0.913270       -0.007245 -0.014621   0.000365 0.250000   1.000000
+   sar_attr      auprc   0.795964        0.782549       -0.013415 -0.025370  -0.001820 0.250000   1.000000
+   sar_attr f1_bestthr   0.787993        0.778121       -0.009872 -0.024128   0.002226 0.250000   1.000000
+   sar_attr        ece   0.108829        0.114112        0.005283 -0.003757   0.015444 0.437500   1.000000
+   sar_attr      brier   0.097366        0.105865        0.008500 -0.001367   0.018931 0.312500   1.000000
+    sar_gap       bacc   0.828043        0.832098        0.004055 -0.003098   0.010882 0.312500   1.000000
+    sar_gap         f1   0.733693        0.751139        0.017446 -0.000844   0.041894 0.187500   1.000000
+    sar_gap        auc   0.920515        0.938287        0.017771  0.001822   0.038080 0.187500   1.000000
+    sar_gap      auprc   0.795964        0.826238        0.030273  0.003333   0.061599 0.062500   1.000000
+    sar_gap f1_bestthr   0.787993        0.814000        0.026006  0.003362   0.052832 0.187500   1.000000
+    sar_gap        ece   0.108829        0.102581       -0.006248 -0.012959  -0.000038 0.125000   1.000000
+    sar_gap      brier   0.097366        0.090865       -0.006501 -0.012429  -0.000242 0.125000   1.000000
+sar_extreme       bacc   0.828043        0.779612       -0.048431 -0.084486  -0.015084 0.062500   1.000000
+sar_extreme         f1   0.733693        0.666374       -0.067319 -0.128849  -0.012677 0.062500   1.000000
+sar_extreme        auc   0.920515        0.902776       -0.017739 -0.031299  -0.005195 0.125000   1.000000
+sar_extreme      auprc   0.795964        0.769942       -0.026022 -0.045883  -0.009008 0.125000   1.000000
+sar_extreme f1_bestthr   0.787993        0.764162       -0.023832 -0.042322  -0.006163 0.125000   1.000000
+sar_extreme        ece   0.108829        0.133400        0.024571  0.003391   0.052417 0.125000   1.000000
+sar_extreme      brier   0.097366        0.127595        0.030229  0.005496   0.058564 0.125000   1.000000
+
+MODEL-SELECTION CRITERION EFFECTS
+                    family          criterion                          label  effect_f1  ci95_low  ci95_high  p_exact  oracle_gap_f1  p_holm_within_family
+         versus_lee_liu_f1         crit_puauc                         PU-AUC  -0.042454 -0.062333  -0.024204 0.062500       0.053091              0.312500
+         versus_lee_liu_f1      crit_nnpurisk    nnPU risk (estimated prior)   0.004697 -0.001265   0.014494 0.375000       0.005939              1.000000
+         versus_lee_liu_f1         crit_f1hat estimated F1 (estimated prior)   0.000977 -0.002825   0.003918 0.625000       0.009660              1.000000
+         versus_lee_liu_f1 crit_nnpurisk_true         nnPU risk (true prior)  -0.032738 -0.075758   0.001556 0.187500       0.043375              0.750000
+         versus_lee_liu_f1    crit_f1hat_true      estimated F1 (true prior)   0.000819 -0.001159   0.002942 0.500000       0.009817              1.000000
+estimated_vs_true_prior_f1      crit_nnpurisk    nnPU risk (estimated prior)   0.037436  0.005655   0.078728 0.125000       0.005939              0.250000
+estimated_vs_true_prior_f1         crit_f1hat estimated F1 (estimated prior)   0.000158 -0.004937   0.003976 0.875000       0.009660              0.875000

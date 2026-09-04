@@ -1,0 +1,18 @@
+diff --git a/sarpu/sarpu/PUmodels.py b/sarpu/sarpu/PUmodels.py
+index 6241b21..c14e609 100644
+--- a/sarpu/sarpu/PUmodels.py
++++ b/sarpu/sarpu/PUmodels.py
+@@ -21,11 +21,11 @@ class LogisticRegressionPU(LogisticRegression, BasePU):
+     def __init__(self, penalty='l2', dual=False, tol=1e-4, C=1.0,
+                  fit_intercept=True, intercept_scaling=1, class_weight=None,
+                  random_state=None, solver='liblinear', max_iter=100,
+-                 multi_class='ovr', verbose=0, warm_start=False, n_jobs=1):
++                 verbose=0, warm_start=False, n_jobs=1):
+         LogisticRegression.__init__(self,penalty=penalty, dual=dual, tol=tol, C=C, 
+                          fit_intercept=fit_intercept,intercept_scaling=intercept_scaling,
+                         class_weight=class_weight, random_state=random_state,
+-                        solver=solver, max_iter=max_iter, multi_class=multi_class,
++                        solver=solver, max_iter=max_iter,
+                         verbose=verbose, warm_start=warm_start, n_jobs=n_jobs)
+                
+         

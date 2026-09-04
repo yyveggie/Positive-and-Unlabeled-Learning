@@ -1,0 +1,6 @@
+phase,dataset,mechanism,c,seed,method,lr,wd,hidden,epoch,alpha_true,alpha_used,crit_leeliu,crit_oraclef1,bacc,f1,auc,secs
+smoke,breast,scar,0.5,0,imbpu,0.01,0.0,64,50,0.3724,0.3724,2.0739,0.9524,0.9365,0.9176,0.9944,0.8
+smoke,breast,scar,0.5,0,vpu,0.01,0.0,64,50,0.3724,0.3724,1.4427,0.8,0.8274,0.7848,0.9289,0.0
+smoke,breast,scar,0.5,0,distpu,0.01,0.0,64,50,0.3724,0.3724,2.1257,0.9157,0.8968,0.8636,0.9653,0.0
+smoke,breast,scar,0.5,0,cvir,0.01,0.0,64,50,0.3724,0.3724,2.0083,0.9136,0.9435,0.9286,0.9874,0.0
+smoke,breast,scar,0.5,0,bbe_cvir,0.01,0.0,64,50,0.3724,0.4588,2.1412,0.9425,0.9325,0.9011,0.9947,0.0

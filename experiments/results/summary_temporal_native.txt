@@ -1,0 +1,27 @@
+TEMPORAL NATIVE-PU AUDIT
+selected rows: 90; seeds: [0, 1, 2, 3, 4]; methods: 9
+selection: Lee-Liu P/U criterion; test outcomes never used for selection
+
+[debian] events 126/27974
+  holistic_off       AP=0.01193 AUC=0.6792 EF1%=3.96 R1%=0.040
+  distpu_bbe_off     AP=0.01163 AUC=0.6399 EF1%=4.60 R1%=0.046
+  nnpu_bbe           AP=0.01134 AUC=0.6829 EF1%=4.76 R1%=0.048
+  vpu_off            AP=0.01042 AUC=0.6761 EF1%=3.81 R1%=0.038
+  imbpu_bbe          AP=0.00831 AUC=0.6513 EF1%=3.33 R1%=0.033
+  upu_bbe            AP=0.00831 AUC=0.6154 EF1%=4.12 R1%=0.041
+  cvir_bbe           AP=0.00704 AUC=0.5572 EF1%=1.11 R1%=0.011
+  wce                AP=0.00703 AUC=0.5846 EF1%=2.38 R1%=0.024
+  uasn               AP=0.00601 AUC=0.5542 EF1%=2.06 R1%=0.021
+  BBE train mean=0.1855; validation mean=0.8919
+
+[swissprot] events 115/17300
+  uasn               AP=0.01607 AUC=0.7106 EF1%=3.48 R1%=0.035
+  vpu_off            AP=0.01601 AUC=0.7165 EF1%=1.91 R1%=0.019
+  wce                AP=0.01427 AUC=0.7028 EF1%=2.61 R1%=0.026
+  distpu_bbe_off     AP=0.01383 AUC=0.7100 EF1%=0.35 R1%=0.003
+  holistic_off       AP=0.01271 AUC=0.6910 EF1%=2.09 R1%=0.021
+  upu_bbe            AP=0.01229 AUC=0.6913 EF1%=0.52 R1%=0.005
+  cvir_bbe           AP=0.01212 AUC=0.6864 EF1%=0.17 R1%=0.002
+  nnpu_bbe           AP=0.01203 AUC=0.6887 EF1%=0.87 R1%=0.009
+  imbpu_bbe          AP=0.01162 AUC=0.6814 EF1%=0.87 R1%=0.009
+  BBE train mean=0.4781; validation mean=0.5005

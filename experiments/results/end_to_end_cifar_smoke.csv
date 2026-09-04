@@ -1,0 +1,2 @@
+dataset,seed,method,backbone,device,n_train,n_labeled_positive,n_unlabeled,alpha_unlabeled,c,epochs,warm_epochs,finetune_epochs,bacc,f1,auc,auprc,f1_bestthr,thr_best,precision,recall,pred_rate,ece,brier,selected_positive_rate,selected_positive_f1,secs,status,error
+cifar10,0,uasn_e2e,HolisticPU-ResNet18,mps,500,40,460,0.34782608695652173,0.2,1,0,0,0.5,0.5714285714285714,0.5085968541666667,0.4402607622274986,0.5714285714285715,0.5597646832466125,0.4,1.0,1.0,0.2078974780321121,0.28176131232391394,,,17.019926071166992,ok,

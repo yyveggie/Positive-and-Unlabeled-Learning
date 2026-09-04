@@ -1,0 +1,13 @@
+# Direct numerical dependencies used for the audited extension environment.
+# Python 3.14.0; macOS 27.0 build 26A5406e; Apple M3.
+numpy==2.5.2
+pandas==3.0.5
+scipy==1.18.0
+scikit-learn==1.9.0
+torch==2.13.0
+torchvision==0.28.0
+matplotlib==3.11.1
+cvxopt==1.3.3
+bitarray==3.10.1
+pillow==12.3.0
+tqdm==4.70.0

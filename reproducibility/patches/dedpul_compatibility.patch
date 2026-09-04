@@ -1,0 +1,70 @@
+diff --git a/TIcE.py b/TIcE.py
+index 1c62f0e..800533b 100644
+--- a/TIcE.py
++++ b/TIcE.py
+@@ -30,7 +30,7 @@ def main():
+       
+     data = np.genfromtxt(args.data, delimiter=args.delimiter)
+     labels = np.genfromtxt(args.labels, delimiter=args.delimiter)
+-    labels = bitarray(list(labels == 1))
++    labels = bitarray([bool(v) for v in labels == 1])
+     folds = np.array(list(map(lambda l: int(l.strip()), open(args.folds).readlines()))) if args.folds else \
+         np.random.randint(5, size=len(data))
+     
+@@ -86,7 +86,7 @@ def max_bepp(k):
+ 
+ def generate_folds(folds):
+     for fold in range(max(folds) + 1):
+-        tree_train = bitarray(list(folds == fold))
++        tree_train = bitarray([bool(v) for v in folds == fold])
+         estimate = ~tree_train
+         yield (tree_train, estimate)
+         
+@@ -94,7 +94,9 @@ def generate_folds(folds):
+ def tice(data, labels, k, folds, delta=None, nbIterations=2, maxSplits=500, useMostPromisingOnly=False, minT=10,
+          n_splits=3):
+     if isinstance(labels, np.ndarray):
+-        labels = bitarray(list(labels == 1))
++        # bitarray >= 3 rejects numpy.bool_ scalars; conversion to builtin bool
++        # is representation-only and leaves the TIcE labels unchanged.
++        labels = bitarray([bool(v) for v in labels == 1])
+ 
+     c_its_ests = []
+     c_estimate = 0.5
+@@ -156,7 +158,7 @@ def subsetsThroughDT(data, tree_train, estimate, labels, splitCrit=max_bepp(5),
+       subsets = []
+       options = bitarray(all_data)
+       for b in borders:
+-          X_cond = bitarray(list((data[:, a] < b))) & options
++          X_cond = bitarray([bool(v) for v in (data[:, a] < b)]) & options
+           options &= ~X_cond
+           subsets.append(X_cond)
+       subsets.append(options)
+diff --git a/utils.py b/utils.py
+index 36b565e..22d8dc4 100644
+--- a/utils.py
++++ b/utils.py
+@@ -63,9 +63,12 @@ def loguniform(low=0, high=1, size=None):
+ def rolling_apply(diff, k_neighbours):
+     s = pd.Series(diff)
+     s = np.concatenate((
+-                        s.iloc[:2*k_neighbours].expanding(center=False).median()[::2].values,
++                        # pandas >= 2 removed the no-op ``center`` argument from
++                        # Expanding; omitting it preserves the original prefix
++                        # median calculation.
++                        s.iloc[:2*k_neighbours].expanding().median()[::2].values,
+                         s.rolling(k_neighbours*2+1, center=True).median().dropna().values,
+-                        np.flip(np.flip(s.iloc[-2*k_neighbours:], axis=0).expanding(center=False).median()[::2], axis=0).values
++                        np.flip(np.flip(s.iloc[-2*k_neighbours:], axis=0).expanding().median()[::2], axis=0).values
+     ))
+     return s
+ 
+@@ -131,7 +134,7 @@ class MonotonizingTrends:
+         if self.counter:
+             return max(self.counter)
+         else:
+-            return np.NaN
++            return np.nan
+ 
+     def add_point_to_counter(self, point):
+         if point not in self.counter.keys():
