@@ -1,0 +1,6 @@
+Index of satimage
+
+02 Dec 1996      133 Index
+13 Feb 1993     5254 sat.doc
+13 Feb 1993   525830 sat.trn
+13 Feb 1993   236745 sat.tst
