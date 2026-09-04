@@ -10,15 +10,6 @@ tracks. Every track runs under a common information boundary: model selection
 uses only positive and unlabeled data, and test labels stay sealed until final
 scoring.
 
-## Layout
-
-    experiments/src/         method implementations, runners, and summarizers
-    experiments/results/     result tables, one CSV per track and shard
-    reproducibility/         experiment registry, method map, environment, tests
-
-`reproducibility/experiment_registry.json` maps each track to its runner and
-the exact command that produced the recorded results.
-
 ## Results
 
 Every row records the dataset, labeling mechanism, labeled-positive
