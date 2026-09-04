@@ -60,3 +60,8 @@ Derived features are excluded because of their size.
 `experiments/src/make_features.py` rebuilds the frozen encoder features and the
 graph inputs, and `reproducibility/build_split_seed_manifests.py` regenerates
 the manifests that fix the case-control construction.
+
+## Licence
+
+MIT, with the third-party terms noted in LICENSE. Code collected under
+`implementations/` stays under the licences of its original authors.
