@@ -36,9 +36,21 @@ one is used, and every deviation from the original.
 `reproducibility/requirements-lock.txt` record the environment that produced
 the results.
 
+## Method implementations
+
+`experiments/src/` holds every method implemented here, from the loss-level
+objectives to the adapters around the authors' released code. `algorithms/`
+holds one standalone LaTeX document per retained method, recording its source
+and any deviation from it.
+
+Eight upstream repositories are not redistributed. Each is pinned to an exact
+revision in `reproducibility/upstream_sources.csv`, and
+`reproducibility/fetch_upstream.py` clones them at that revision and applies the
+compatibility patches in `reproducibility/patches/`.
+
 ## Data not tracked here
 
-Derived features and third-party checkouts are excluded because of their size.
+Derived features are excluded because of their size.
 `experiments/src/make_features.py` rebuilds the frozen encoder features and the
 graph inputs, and `reproducibility/build_split_seed_manifests.py` regenerates
 the manifests that fix the case-control construction.

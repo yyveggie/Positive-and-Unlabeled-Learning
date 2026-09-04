@@ -21,7 +21,6 @@ __pycache__/
 *.fdb_latexmk
 *.synctex.gz
 
-# Manuscript, supplement, figures and their sources
 paper/
 systematic_review/
 tools/
@@ -31,18 +30,16 @@ R0-Review.txt
 survey-*.md
 *.pdf
 
-# Working notes and design documents
 experiments/*.md
 reproducibility/README.md
 reproducibility/CLAIM_EVIDENCE.md
 .backup_before_arxiv_prune/
 
-# Scripts that build manuscript artifacts rather than run experiments
 reproducibility/build_reproducibility_artifacts.py
 reproducibility/create_reviewer_bundle.py
 reproducibility/verify_pseudocode.py
 reproducibility/generated/
 
-# Third-party sources and large derived inputs, rebuilt locally
+
 experiments/external/
 experiments/features/
