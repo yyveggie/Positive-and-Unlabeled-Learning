@@ -45,7 +45,7 @@ class PUOnlySelectionTests(unittest.TestCase):
     def test_public_selection_signatures_have_no_label_argument(self) -> None:
         files_and_functions = {
             MODULE_PATH: {"lee_liu_from_scores", "select_configurations"},
-            ROOT / "experiments" / "src" / "pu_lib.py": {
+            ROOT / "methods" / "pu_lib.py": {
                 "criteria_from_scores", "lee_liu", "all_criteria"
             },
         }
