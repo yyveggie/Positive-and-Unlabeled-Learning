@@ -1,0 +1,300 @@
+\begin{thebibliography}{10}
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \def\href#1#2{#2} \def\path#1{#1}\fi
+
+\bibitem{liu2002sem}
+B.~Liu, W.~S. Lee, P.~S. Yu, X.~Li, Partially supervised classification of text
+  documents, in: Proceedings of the 19th International Conference on Machine
+  Learning (ICML), 2002, pp. 387--394.
+
+\bibitem{bekker2020survey}
+J.~Bekker, J.~Davis, Learning from positive and unlabeled data: a survey,
+  Machine Learning 109 (2020) 719--760.
+
+\bibitem{bekker2019sarem}
+J.~Bekker, P.~Robberechts, J.~Davis, Beyond the selected completely at random
+  assumption for learning from positive and unlabeled data, in: Proceedings of
+  the European Conference on Machine Learning and Knowledge Discovery in
+  Databases (ECML-PKDD), 2019.
+
+\bibitem{coudray2023sar}
+O.~Coudray, C.~Keribin, P.~Massart, P.~Pamphile, Risk bounds for
+  positive-unlabeled learning under the selected at random assumption, Journal
+  of Machine Learning Research 24~(107) (2023) 1--31.
+
+\bibitem{kiryo2017nnpu}
+R.~Kiryo, G.~Niu, M.~C. du~Plessis, M.~Sugiyama, Positive-unlabeled learning
+  with non-negative risk estimator, in: Advances in Neural Information
+  Processing Systems (NeurIPS), 2017, pp. 1675--1685.
+
+\bibitem{zhao2022distpu}
+Y.~Zhao, Q.~Xu, Y.~Jiang, P.~Wen, Q.~Huang, {Dist-PU}: positive-unlabeled
+  learning from a label distribution perspective, in: Proceedings of the
+  IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2022,
+  pp. 14461--14470.
+
+\bibitem{garg2021bbe}
+S.~Garg, Y.~Wu, A.~J. Smola, S.~Balakrishnan, Z.~C. Lipton, Mixture proportion
+  estimation and {PU} learning: a modern approach, in: Advances in Neural
+  Information Processing Systems (NeurIPS), 2021.
+
+\bibitem{teisseyre2024scartest}
+P.~Teisseyre, K.~Furma{\'n}czyk, J.~Mielniczuk, Verifying the selected
+  completely at random assumption in positive-unlabeled learning, in:
+  Proceedings of the 27th European Conference on Artificial Intelligence
+  (ECAI), 2024.
+\newblock \href {https://doi.org/10.3233/FAIA240675}
+  {\path{doi:10.3233/FAIA240675}}.
+
+\bibitem{wu2024gpl}
+Y.~Wu, J.~Yao, B.~Han, L.~Yao, T.~Liu, Unraveling the impact of heterophilic
+  structures on graph positive-unlabeled learning, in: Proceedings of the 41st
+  International Conference on Machine Learning (ICML), 2024.
+
+\bibitem{saunders2022evaluation}
+J.~D. Saunders, A.~A. Freitas, Evaluating the predictive performance of
+  positive-unlabelled classifiers: a brief critical review and practical
+  recommendations for improvement, ACM SIGKDD Explorations Newsletter 24~(2)
+  (2022).
+
+\bibitem{wang2026bench}
+W.~Wang, D.-D. Wu, M.~Li, J.~Zhang, G.~Niu, M.~Sugiyama, Accessible, realistic,
+  and fair evaluation of positive-unlabeled learning algorithms, in:
+  Proceedings of the 14th International Conference on Learning Representations
+  (ICLR), 2026.
+
+\bibitem{jaskie2022book}
+K.~Jaskie, A.~Spanias, Positive Unlabeled Learning, Synthesis Lectures on
+  Artificial Intelligence and Machine Learning, Springer, 2022.
+
+\bibitem{gong2022idpu-survey}
+C.~Gong, Q.~Wang, T.~Liu, B.~Han, J.~You, J.~Yang, D.~Tao, A recent survey on
+  instance-dependent positive and unlabeled learning, Fundamental Research
+  (2022).
+
+\bibitem{elkan2008learning}
+C.~Elkan, K.~Noto, Learning classifiers from only positive and unlabeled data,
+  in: Proceedings of the 14th ACM SIGKDD International Conference on Knowledge
+  Discovery and Data Mining (KDD), 2008, pp. 213--220.
+
+\bibitem{he2018pgpu}
+F.~He, T.~Liu, G.~I. Webb, D.~Tao, Instance-dependent {PU} learning by
+  {Bayesian} optimal relabeling, preprint (2018).
+\newblock \href {http://arxiv.org/abs/1808.02180} {\path{arXiv:1808.02180}}.
+
+\bibitem{liu2003biasedsvm}
+B.~Liu, Y.~Dai, X.~Li, W.~S. Lee, P.~S. Yu, Building text classifiers using
+  positive and unlabeled examples, in: Proceedings of the 3rd IEEE
+  International Conference on Data Mining (ICDM), 2003, pp. 179--186.
+
+\bibitem{lee2003wlr}
+W.~S. Lee, B.~Liu, Learning with positive and unlabeled examples using weighted
+  logistic regression, in: Proceedings of the 20th International Conference on
+  Machine Learning (ICML), 2003, pp. 448--455.
+
+\bibitem{mordelet2014bagging}
+F.~Mordelet, J.-P. Vert, A bagging {SVM} to learn from positive and unlabeled
+  examples, Pattern Recognition Letters 37 (2014) 201--209.
+
+\bibitem{wang2026ucpual}
+X.~Wang, R.~Zhu, J.-H. Xue, {UC-PUAL}: a universally consistent classifier of
+  positive-unlabelled data, Pattern Recognition 169 (2026) 111892.
+\newblock \href {https://doi.org/10.1016/j.patcog.2025.111892}
+  {\path{doi:10.1016/j.patcog.2025.111892}}.
+
+\bibitem{denis2005posc45}
+F.~Denis, R.~Gilleron, F.~Letouzey, Learning from positive and unlabeled
+  examples, Theoretical Computer Science 348~(1) (2005) 70--83.
+
+\bibitem{ward2009em}
+G.~Ward, T.~Hastie, S.~Barry, J.~Elith, J.~R. Leathwick, Presence-only data and
+  the {EM} algorithm, Biometrics 65~(2) (2009) 554--563.
+
+\bibitem{duplessis2014analysis}
+M.~C. du~Plessis, G.~Niu, M.~Sugiyama, Analysis of learning from positive and
+  unlabeled data, in: Advances in Neural Information Processing Systems
+  (NeurIPS), 2014, pp. 703--711.
+
+\bibitem{duplessis2015convex}
+M.~C. du~Plessis, G.~Niu, M.~Sugiyama, Convex formulation for learning from
+  positive and unlabeled data, in: Proceedings of the 32nd International
+  Conference on Machine Learning (ICML), 2015, pp. 1386--1394.
+
+\bibitem{su2021imbpu}
+G.~Su, W.~Chen, M.~Xu, Positive-unlabeled learning from imbalanced data, in:
+  Proceedings of the 30th International Joint Conference on Artificial
+  Intelligence (IJCAI), 2021, pp. 2995--3001.
+
+\bibitem{li2025balance}
+X.~Li, Y.~Dai, B.~Wang, C.~Li, J.~Qu, R.~Guan, Balancing positive and negative
+  classification error rates in positive-unlabeled learning, in: Advances in
+  Neural Information Processing Systems (NeurIPS), 2025.
+
+\bibitem{jiang2023lda}
+Y.~Jiang, Q.~Xu, Y.~Zhao, Z.~Yang, P.~Wen, X.~Cao, Q.~Huang, Positive-unlabeled
+  learning with label distribution alignment, IEEE Transactions on Pattern
+  Analysis and Machine Intelligence 45~(12) (2023).
+
+\bibitem{chen2020vpu}
+H.~Chen, F.~Liu, Y.~Wang, L.~Zhao, H.~Wu, A variational approach for learning
+  from positive and unlabeled data, in: Advances in Neural Information
+  Processing Systems (NeurIPS), 2020.
+
+\bibitem{hu2021pan}
+W.~Hu, R.~Le, B.~Liu, F.~Ji, J.~Ma, D.~Zhao, R.~Yan, Predictive adversarial
+  learning from positive and unlabeled data, in: Proceedings of the 35th AAAI
+  Conference on Artificial Intelligence, 2021, pp. 7806--7814.
+
+\bibitem{wang2023holistic}
+X.~Wang, W.~Wan, C.~Geng, S.-Y. Li, S.~Chen, Beyond myopia: learning from
+  positive and unlabeled data through holistic predictive trends, in: Advances
+  in Neural Information Processing Systems (NeurIPS), 2023.
+
+\bibitem{hammoudeh2020apu}
+Z.~Hammoudeh, D.~Lowd, Learning from positive and unlabeled data with arbitrary
+  positive shift, in: Advances in Neural Information Processing Systems
+  (NeurIPS), 2020.
+
+\bibitem{zhao2023taylor}
+H.~Zhao, X.~Wang, J.~Li, Y.~Zhong, Class prior-free positive-unlabeled learning
+  with {Taylor} variational loss for hyperspectral remote sensing imagery, in:
+  Proceedings of the IEEE/CVF International Conference on Computer Vision
+  (ICCV), 2023.
+
+\bibitem{zhu2026puka}
+J.~Zhu, D.~Chen, H.~Wang, Learning from positive and unlabeled data via kernel
+  alignment approach, Pattern Recognition 174 (2026) 112953.
+\newblock \href {https://doi.org/10.1016/j.patcog.2025.112953}
+  {\path{doi:10.1016/j.patcog.2025.112953}}.
+
+\bibitem{blanchard2010ssnd}
+G.~Blanchard, G.~Lee, C.~Scott, Semi-supervised novelty detection, Journal of
+  Machine Learning Research 11 (2010) 2973--3009.
+
+\bibitem{liu2016importance}
+T.~Liu, D.~Tao, Classification with noisy labels by importance reweighting,
+  IEEE Transactions on Pattern Analysis and Machine Intelligence 38~(3) (2016)
+  447--461.
+
+\bibitem{ramaswamy2016km}
+H.~G. Ramaswamy, C.~Scott, A.~Tewari, Mixture proportion estimation via kernel
+  embeddings of distributions, in: Proceedings of the 33rd International
+  Conference on Machine Learning (ICML), 2016, pp. 2052--2060.
+
+\bibitem{bekker2018tice}
+J.~Bekker, J.~Davis, Estimating the class prior in positive and unlabeled data
+  through decision tree induction, in: Proceedings of the 32nd AAAI Conference
+  on Artificial Intelligence, 2018, pp. 2712--2719.
+
+\bibitem{ivanov2020dedpul}
+D.~Ivanov, {DEDPUL}: difference-of-estimated-densities-based positive-unlabeled
+  learning, in: Proceedings of the 19th IEEE International Conference on
+  Machine Learning and Applications (ICMLA), 2020.
+
+\bibitem{mielniczuk2025priorshift}
+J.~Mielniczuk, W.~Rejchel, P.~Teisseyre, Prior shift estimation for positive
+  unlabeled data through the lens of kernel embedding, in: Proceedings of the
+  29th International Conference on Artificial Intelligence and Statistics
+  (AISTATS), Vol. 300 of Proceedings of Machine Learning Research, 2026.
+
+\bibitem{kato2019pusb}
+M.~Kato, T.~Teshima, J.~Honda, Learning from positive and unlabeled data with a
+  selection bias, in: Proceedings of the 7th International Conference on
+  Learning Representations (ICLR), 2019.
+
+\bibitem{gong2021idpu}
+C.~Gong, Q.~Wang, T.~Liu, B.~Han, J.~You, J.~Yang, D.~Tao, Instance-dependent
+  positive and unlabeled learning with labeling bias estimation, IEEE
+  Transactions on Pattern Analysis and Machine Intelligence 44~(8) (2021).
+
+\bibitem{li2022p3mix}
+C.~Li, X.~Li, L.~Feng, J.~Ouyang, Who is your right mixup partner in positive
+  and unlabeled learning, in: Proceedings of the 10th International Conference
+  on Learning Representations (ICLR), 2022.
+
+\bibitem{chen2020selfpu}
+X.~Chen, W.~Chen, T.~Chen, Y.~Yuan, C.~Gong, K.~Chen, Z.~Wang, {Self-PU}: self
+  boosted and calibrated positive-unlabeled training, in: Proceedings of the
+  37th International Conference on Machine Learning (ICML), 2020, pp.
+  1510--1519.
+
+\bibitem{yuan2025wconpu}
+B.~Yuan, C.~Gong, D.~Tao, J.~Yang, Weighted contrastive learning with hard
+  negative mining for positive and unlabeled learning, IEEE Transactions on
+  Neural Networks and Learning Systems 36~(6) (2025) 10515--10529.
+\newblock \href {https://doi.org/10.1109/TNNLS.2025.3530427}
+  {\path{doi:10.1109/TNNLS.2025.3530427}}.
+
+\bibitem{sevetlidis2025angular}
+V.~Sevetlidis, G.~Pavlidis, A.~Gasteratos, Angular regularization for
+  positive-unlabeled learning on the hypersphere, Transactions on Machine
+  Learning Research (2025).
+
+\bibitem{hou2018genpu}
+M.~Hou, B.~Chaib-draa, C.~Li, Q.~Zhao, Generative adversarial
+  positive-unlabelled learning, in: Proceedings of the 27th International Joint
+  Conference on Artificial Intelligence (IJCAI), 2018, pp. 2255--2261.
+
+\bibitem{wang2025pugan}
+Y.~Wang, C.~Xu, T.~Guo, B.~Du, D.~Tao, On positive-unlabeled classification
+  from corrupted data in {GANs}, IEEE Transactions on Pattern Analysis and
+  Machine Intelligence 47~(8) (2025) 6859--6875.
+\newblock \href {https://doi.org/10.1109/TPAMI.2025.3565394}
+  {\path{doi:10.1109/TPAMI.2025.3565394}}.
+
+\bibitem{zhou2021pure}
+Y.~Zhou, J.~Xu, J.~Wu, Z.~Taghavi~Nasrabadi, E.~K{\"o}rpeoglu, K.~Achan, J.~He,
+  {PURE}: positive-unlabeled recommendation with generative adversarial
+  network, in: Proceedings of the 27th ACM SIGKDD Conference on Knowledge
+  Discovery and Data Mining (KDD), 2021, pp. 2409--2419.
+
+\bibitem{deng2026pgrm}
+J.~Deng, H.~Jin, Z.~Zhang, J.~Ye, Y.~Wang, L.~Y. Zhang, K.~K. Khushvakhtzoda,
+  {PGRM}: positive-unlabeled enhanced recommendation model based on generative
+  adversarial network, Pattern Recognition 176 (2026) 113209.
+\newblock \href {https://doi.org/10.1016/j.patcog.2026.113209}
+  {\path{doi:10.1016/j.patcog.2026.113209}}.
+
+\bibitem{lin2022fedpu}
+X.~Lin, H.~Chen, Y.~Xu, C.~Xu, X.~Gui, Y.~Deng, Y.~Wang, Federated learning
+  with positive and unlabeled data, in: Proceedings of the 39th International
+  Conference on Machine Learning (ICML), 2022, pp. 13344--13355.
+
+\bibitem{huang2025pairwise}
+S.~Huang, J.~Li, C.~Hua, Y.~Yang, Learning from not-all-negative pairwise data
+  and unlabeled data, Pattern Recognition 163 (2025) 111442.
+\newblock \href {https://doi.org/10.1016/j.patcog.2025.111442}
+  {\path{doi:10.1016/j.patcog.2025.111442}}.
+
+\bibitem{messias2025rewiring}
+G.~H. Messias, S.~Iasulaitis, A.~D.~B. Valejo, Graph neural networks for
+  positive and unlabeled learning: a rewiring approach, Knowledge and
+  Information Systems 67~(11) (2025) 10727--10749.
+\newblock \href {https://doi.org/10.1007/s10115-025-02547-7}
+  {\path{doi:10.1007/s10115-025-02547-7}}.
+
+\bibitem{kim2025pull}
+J.~Kim, K.~H. Park, H.~Yoon, U.~Kang, Accurate link prediction for
+  edge-incomplete graphs via {PU} learning, in: Proceedings of the 39th AAAI
+  Conference on Artificial Intelligence, 2025.
+
+\bibitem{stolfi2023niapu}
+P.~Stolfi, A.~Mastropietro, G.~Pasculli, P.~Tieri, D.~Vergni, {NIAPU}:
+  network-informed adaptive positive-unlabeled learning for disease gene
+  identification, Bioinformatics 39~(2) (2023) btac848.
+
+\bibitem{wen2023vul}
+X.-C. Wen, X.~Wang, C.~Gao, S.~Wang, Y.~Liu, Z.~Gu, When less is enough:
+  positive and unlabeled learning model for vulnerability detection, in:
+  Proceedings of the 38th IEEE/ACM International Conference on Automated
+  Software Engineering (ASE), 2023.
+
+\bibitem{lejeune2021seg}
+L.~Lejeune, R.~Sznitman, A positive/unlabeled approach for the segmentation of
+  medical sequences using point-wise supervision, Medical Image Analysis 73
+  (2021) 102185.
+
+\end{thebibliography}
